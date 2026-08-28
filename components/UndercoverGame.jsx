@@ -188,6 +188,35 @@ function fmtClock(sec) {
   const m = Math.floor(sec / 60), s = sec % 60;
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
+function computeRemaining(startedAt, durationSec) {
+  if (!startedAt) return durationSec;
+  return Math.max(0, durationSec - (Date.now() - startedAt) / 1000);
+}
+
+/* Ticks its own text every second WITHOUT forcing the parent screen to
+   re-render — keeps the player circle / spy checklist perfectly still. */
+const CountdownLabel = React.memo(function CountdownLabel({ startedAt, durationSec }) {
+  const [remaining, setRemaining] = useState(() => computeRemaining(startedAt, durationSec));
+  useEffect(() => {
+    const id = setInterval(() => setRemaining(computeRemaining(startedAt, durationSec)), 1000);
+    return () => clearInterval(id);
+  }, [startedAt, durationSec]);
+  return <>{fmtClock(remaining)}</>;
+});
+
+/* Only re-renders GameScreen when the open/closed boundary actually flips
+   (twice per round), not every second. */
+function useOpenMode(startedAt, durationSec) {
+  const [openMode, setOpenMode] = useState(() => computeRemaining(startedAt, durationSec) <= OPEN_WINDOW_SEC);
+  useEffect(() => {
+    const id = setInterval(() => {
+      const om = computeRemaining(startedAt, durationSec) <= OPEN_WINDOW_SEC;
+      setOpenMode(prev => (prev === om ? prev : om));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [startedAt, durationSec]);
+  return openMode;
+}
 
 /* =========================================================================
    MAIN APP
@@ -212,7 +241,7 @@ export default function App() {
     pollRef.current = setInterval(async () => {
       const fresh = await loadRoom(code);
       if (fresh) { setRoom(fresh); setScreen(fresh.status); }
-    }, 1500);
+    }, 2200);
   }, []);
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
@@ -419,7 +448,7 @@ function LobbyScreen({ room, me, selectedCats, toggleCat, roundMinutes, setRound
 }
 
 /* ---------------- Turn viewfinder ---------------- */
-function TurnViewfinder({ room, openMode }) {
+const TurnViewfinder = React.memo(function TurnViewfinder({ room, openMode }) {
   const players = room.players;
   const n = players.length;
   const R = 96, cx = 130, cy = 130;
@@ -440,18 +469,14 @@ function TurnViewfinder({ room, openMode }) {
       <Radio size={22} color={C.line} style={{ position: "absolute", left: cx - 11, top: cy - 11, opacity: 0.35 }} />
     </div>
   );
-}
+});
 
 /* ---------------- Game screen ---------------- */
 function GameScreen({ room, me, imDone, toggleEndVote, leaveRoom }) {
   const iAmSpy = room.spyId === me.id;
   const cat = CATEGORIES[room.item.category];
   const nameOf = id => (room.players.find(p => p.id === id) || {}).name || "?";
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
-  const elapsed = room.roundStartedAt ? (now - room.roundStartedAt) / 1000 : 0;
-  const remaining = Math.max(0, room.roundDurationSec - elapsed);
-  const openMode = remaining <= OPEN_WINDOW_SEC;
+  const openMode = useOpenMode(room.roundStartedAt, room.roundDurationSec);
 
   const [marks, setMarks] = useState({});
   useEffect(() => { setMarks({}); }, [room.round]);
@@ -475,7 +500,7 @@ function GameScreen({ room, me, imDone, toggleEndVote, leaveRoom }) {
       {openMode && (
         <div style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(229,87,75,0.16)", border: `1px solid ${C.coral}`, borderRadius: 12, padding: "12px 14px", marginBottom: 16, animation: "none" }}>
           <Bell size={18} color={C.coral} />
-          <span style={{ fontSize: 13, color: C.cream }}><b style={{ color: C.coral }}>Final {fmtClock(remaining)}</b> — anyone can ask anyone now!</span>
+          <span style={{ fontSize: 13, color: C.cream }}><b style={{ color: C.coral }}>Final <CountdownLabel startedAt={room.roundStartedAt} durationSec={room.roundDurationSec} /></b> — anyone can ask anyone now!</span>
         </div>
       )}
 
