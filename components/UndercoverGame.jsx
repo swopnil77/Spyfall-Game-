@@ -411,6 +411,11 @@ export default function App() {
     await saveRoom(next); setRoom(next); setScreen("reveal");
   }
   async function playAgain() { await startGame(); }
+  async function backToCategories() {
+    const r = roomRef.current;
+    const next = { ...r, status: "lobby" };
+    await saveRoom(next); setRoom(next); setScreen("lobby");
+  }
   function leaveRoom() {
     if (pollRef.current) clearInterval(pollRef.current);
     setRoom(null); setScreen("home"); setJoinError("");
@@ -428,7 +433,7 @@ export default function App() {
         {screen === "playing" && room && <GameScreen {...{ room, me, imDone, toggleEndVote, leaveRoom }} />}
         {screen === "voting" && room && <VotingScreen {...{ room, me, castVote, leaveRoom }} />}
         {screen === "spyGuess" && room && <SpyGuessScreen {...{ room, me, spySubmitGuess, leaveRoom }} />}
-        {screen === "reveal" && room && <RevealScreen {...{ room, me, playAgain, leaveRoom }} />}
+        {screen === "reveal" && room && <RevealScreen {...{ room, me, playAgain, backToCategories, leaveRoom }} />}
       </div>
       <div style={{ textAlign: "center", fontSize: 11, color: C.creamDim, opacity: 0.6, marginTop: 34, letterSpacing: "0.04em" }}>
         Built by Milkymamba
@@ -700,7 +705,7 @@ function SpyGuessScreen({ room, me, spySubmitGuess, leaveRoom }) {
 }
 
 /* ---------------- Reveal ---------------- */
-function RevealScreen({ room, me, playAgain, leaveRoom }) {
+function RevealScreen({ room, me, playAgain, backToCategories, leaveRoom }) {
   const votes = room.votes || {};
   const crew = room.players.filter(p => p.id !== room.spyId);
   const correctVoters = crew.filter(p => votes[p.id] === room.spyId);
@@ -727,7 +732,16 @@ function RevealScreen({ room, me, playAgain, leaveRoom }) {
                 : `The spy evaded a majority (${correctVoters.length}/${crew.length} crew guessed right) — spy earns +2.`}
             </div>
           </Card>
-          {isHost ? <PrimaryButton onClick={playAgain}>Play another round <ArrowRight size={16} /></PrimaryButton> : <Card><Sub>Waiting for the host to start the next round…</Sub></Card>}
+          {isHost ? (
+            <>
+              <PrimaryButton onClick={playAgain}>Play another round <ArrowRight size={16} /></PrimaryButton>
+              <div style={{ marginTop: 10 }}>
+                <GhostButton onClick={backToCategories}><Sparkles size={15} /> Change categories</GhostButton>
+              </div>
+            </>
+          ) : (
+            <Card><Sub>Waiting for the host to start the next round…</Sub></Card>
+          )}
           <div style={{ marginTop: 10 }}><GhostButton onClick={leaveRoom}><LogOut size={15} /> Leave room</GhostButton></div>
         </div>
         <div>
