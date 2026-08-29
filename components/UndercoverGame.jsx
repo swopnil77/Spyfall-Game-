@@ -29,7 +29,7 @@ const OPEN_WINDOW_SEC = 120;
    GAME DATA
    ========================================================================= */
 const CATEGORIES = {
-  movies: { label: "Movies", icon: "🎬", items: ["Titanic","Inception","Avatar","Parasite","The Godfather","Jurassic Park","Interstellar","The Dark Knight","Frozen","Avengers: Endgame","La La Land","Coco","Spirited Away","Whiplash","Joker","The Matrix","Forrest Gump","Gladiator","The Lion King","Toy Story","Jerry Maguire","Kalo Pothi","Loot","Chha Maya Chhaina","Prem Geet"] },
+  movies: { label: "Movies", icon: "🎬", items: ["Titanic","Inception","Avatar","Parasite","The Godfather","Jurassic Park","Interstellar","The Dark Knight","Frozen","Avengers: Endgame","La La Land","Coco","Spirited Away","Whiplash","Joker","The Matrix","Forrest Gump","Gladiator","The Lion King","Toy Story","Jerry Maguire"] },
   tvshows: { label: "TV Shows", icon: "📺", items: ["Friends","Breaking Bad","Game of Thrones","The Office","Stranger Things","Money Heist","Sherlock","The Crown","Dark","Chernobyl","Better Call Saul","The Simpsons","Squid Game","The Mandalorian","Peaky Blinders","Rick and Morty","The Witcher","Loki","House of the Dragon","Wednesday","Prison Break","Narcos"] },
   celebrities: { label: "Celebrities", icon: "🌟", items: ["Shah Rukh Khan","Cristiano Ronaldo","Lionel Messi","Taylor Swift","Dwayne Johnson","Priyanka Chopra","Elon Musk","Beyoncé","Tom Cruise","Rihanna","Virat Kohli","Leonardo DiCaprio","Emma Watson","Jungkook","Zendaya","Robert Downey Jr.","Selena Gomez","Salman Khan","Deepika Padukone","Keanu Reeves","Billie Eilish","Chris Hemsworth","Scarlett Johansson","Ed Sheeran","Kim Kardashian"] },
   locations: { label: "Locations", icon: "📍", items: ["Airplane","Bank","Beach","Casino","Cathedral","Circus Tent","Corporate Party","Crusader Army","Embassy","Hospital","Hotel","Military Base","Movie Studio","Ocean Liner","Passenger Train","Polar Station","Police Station","Restaurant","School","Service Station","Space Station","Submarine","Supermarket","Theater"] },
@@ -37,6 +37,10 @@ const CATEGORIES = {
   districts: { label: "Nepal Districts", icon: "🗺️", items: ["Kathmandu","Lalitpur","Bhaktapur","Kaski","Chitwan","Morang","Sunsari","Jhapa","Rupandehi","Kailali","Kanchanpur","Banke","Bardiya","Dang","Palpa","Gorkha","Lamjung","Tanahun","Syangja","Baglung","Myagdi","Mustang","Manang","Rasuwa","Nuwakot","Dhading","Makwanpur","Sindhuli","Ramechhap","Dolakha","Solukhumbu","Okhaldhunga","Khotang","Bhojpur","Dhankuta","Ilam","Panchthar","Taplejung","Terhathum","Udayapur"] },
   countries: { label: "Countries", icon: "🌍", items: ["Nepal","India","China","USA","UK","France","Germany","Japan","South Korea","Australia","Brazil","Canada","Russia","Italy","Spain","Mexico","Egypt","South Africa","Thailand","Vietnam","Indonesia","Turkey","Saudi Arabia","UAE","Bhutan","Bangladesh","Sri Lanka","Pakistan","Argentina","Switzerland"] },
   anime: { label: "Anime Characters", icon: "⚔️", items: ["Naruto Uzumaki","Monkey D. Luffy","Goku","Levi Ackerman","Light Yagami","Eren Yeager","Itachi Uchiha","Saitama","Edward Elric","Tanjiro Kamado","Nezuko Kamado","Sasuke Uchiha","L Lawliet","Vegeta","Ichigo Kurosaki","Gon Freecss","Killua Zoldyck","Mikasa Ackerman","Rem","Izuku Midoriya","All Might","Sailor Moon","Spike Spiegel","Kakashi Hatake","Zoro Roronoa"] },
+  food: { label: "Food", icon: "🍕", items: ["Pizza","Burger","Sushi","Momo","Pasta","Tacos","Ramen","Biryani","Pancakes","Dumplings","Croissant","Falafel","Curry","Sandwich","Steak","Waffles","Fried Rice","Noodles","Ice Cream","Chocolate","Samosa","Paneer Tikka","Dal Bhat","Chowmein","Pav Bhaji"] },
+  hindiMovies: { label: "Hindi Movies (1991–2017)", icon: "🎥", items: ["Hum Aapke Hain Koun","Dilwale Dulhania Le Jayenge","Kuch Kuch Hota Hai","Lagaan","Kabhi Khushi Kabhie Gham","Devdas","Koi Mil Gaya","Veer-Zaara","Rang De Basanti","Lage Raho Munna Bhai","Om Shanti Om","Jab We Met","3 Idiots","My Name Is Khan","Zindagi Na Milegi Dobara","Barfi!","Kai Po Che","Queen","PK","Bajrangi Bhaijaan","Dangal","Sultan","Hindi Medium","Raees"] },
+  animals: { label: "Animals", icon: "🐾", items: ["Lion","Tiger","Elephant","Giraffe","Zebra","Kangaroo","Panda","Koala","Cheetah","Wolf","Fox","Bear","Gorilla","Chimpanzee","Rhino","Hippopotamus","Crocodile","Eagle","Owl","Penguin","Dolphin","Whale","Shark","Octopus","Snake"] },
+  fruits: { label: "Fruits", icon: "🍎", items: ["Apple","Banana","Mango","Orange","Grapes","Strawberry","Pineapple","Watermelon","Papaya","Guava","Kiwi","Peach","Pear","Cherry","Blueberry","Lychee","Pomegranate","Coconut","Lemon","Fig","Plum","Apricot","Dragon Fruit","Jackfruit","Custard Apple"] },
 };
 const CAT_KEYS = Object.keys(CATEGORIES);
 
@@ -230,6 +234,43 @@ function useOpenMode(startedAt, durationSec) {
   return openMode;
 }
 
+/* Analog-style wall clock: a dial with tick marks and a sweeping hand that
+   points further round as the round's time runs out, plus a digital
+   readout underneath. Ticks on its own interval so it never forces the
+   rest of the screen to re-render. */
+const WallClock = React.memo(function WallClock({ startedAt, durationSec, size = 128 }) {
+  const [remaining, setRemaining] = useState(() => computeRemaining(startedAt, durationSec));
+  useEffect(() => {
+    const id = setInterval(() => setRemaining(computeRemaining(startedAt, durationSec)), 1000);
+    return () => clearInterval(id);
+  }, [startedAt, durationSec]);
+  const frac = durationSec > 0 ? remaining / durationSec : 0;
+  const angle = (1 - frac) * 2 * Math.PI;
+  const cx = size / 2, cy = size / 2, r = size / 2 - 10;
+  const handX = cx + r * 0.74 * Math.sin(angle);
+  const handY = cy - r * 0.74 * Math.cos(angle);
+  const urgent = remaining <= OPEN_WINDOW_SEC;
+  const ticks = Array.from({ length: 12 });
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
+        <circle cx={cx} cy={cy} r={r} fill="rgba(0,0,0,0.28)" stroke={urgent ? C.blue : C.line} strokeWidth="2" />
+        {ticks.map((_, i) => {
+          const a = (i / 12) * 2 * Math.PI;
+          const inner = i % 3 === 0 ? r - 10 : r - 6;
+          const x1 = cx + inner * Math.sin(a), y1 = cy - inner * Math.cos(a);
+          const x2 = cx + r * Math.sin(a), y2 = cy - r * Math.cos(a);
+          return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={C.creamDim} strokeWidth={i % 3 === 0 ? 2 : 1} opacity={0.55} />;
+        })}
+        <line x1={cx} y1={cy} x2={handX} y2={handY} stroke={urgent ? C.blue : C.blueSoft} strokeWidth="3.5" strokeLinecap="round" />
+        <circle cx={cx} cy={cy} r="4.5" fill={C.cream} />
+      </svg>
+      <div style={{ fontFamily: sans, fontWeight: 800, fontSize: 18, letterSpacing: 0.5, color: urgent ? C.blue : C.cream }}>{fmtClock(remaining)}</div>
+      <div style={{ fontSize: 10, color: C.creamDim, textTransform: "uppercase", letterSpacing: "0.1em" }}>time remaining</div>
+    </div>
+  );
+});
+
 /* Rectangular player card — avatar, name, points, optional badge/right slot.
    `isMe` gives the current user's own row a distinct cream treatment so
    they can immediately spot themselves apart from everyone else. */
@@ -387,6 +428,9 @@ export default function App() {
         {screen === "spyGuess" && room && <SpyGuessScreen {...{ room, me, spySubmitGuess, leaveRoom }} />}
         {screen === "reveal" && room && <RevealScreen {...{ room, me, playAgain, leaveRoom }} />}
       </div>
+      <div style={{ textAlign: "center", fontSize: 11, color: C.creamDim, opacity: 0.6, marginTop: 34, letterSpacing: "0.04em" }}>
+        Built by Milkymamba
+      </div>
     </div>
   );
 }
@@ -399,7 +443,7 @@ function HomeScreen({ name, setName, homeTab, setHomeTab, codeInput, setCodeInpu
       <div style={{ textAlign: "center", marginTop: 24 }}>
         <Eyebrow>Case File · Party Game</Eyebrow>
         <Title>Undercover</Title>
-        <Sub>One of you doesn't know the secret. Everyone else does.</Sub>
+        <Sub>One of you doesn't know the secret. Everyone else does. Ask sly questions, read the room, and unmask the spy — or bluff your way through as one.</Sub>
       </div>
       {!CONFIGURED && (
         <Card style={{ borderColor: C.blue }}>
@@ -424,7 +468,7 @@ function HomeScreen({ name, setName, homeTab, setHomeTab, codeInput, setCodeInpu
         {joinError && <div style={{ color: C.blue, fontSize: 13, margin: "-8px 0 12px" }}>{joinError}</div>}
         <PrimaryButton onClick={homeTab === "create" ? createRoom : joinRoom}>{homeTab === "create" ? <>Create New Room <ArrowRight size={16} /></> : <>Join Existing Room <ArrowRight size={16} /></>}</PrimaryButton>
       </Card>
-      <p style={{ fontSize: 11, color: C.creamDim, textAlign: "center", marginTop: 26, lineHeight: 1.6, opacity: 0.8 }}>Built By MilkyMamba</p>
+      <p style={{ fontSize: 11, color: C.creamDim, textAlign: "center", marginTop: 26, lineHeight: 1.6, opacity: 0.8 }}>Photos of real people, posters and character art are kept out of this game for copyright reasons — every player and item gets a colour-coded badge instead.</p>
     </>
   );
 }
@@ -533,6 +577,10 @@ function GameScreen({ room, me, imDone, toggleEndVote, leaveRoom }) {
     <>
       <Eyebrow>Round {room.round} · In progress</Eyebrow>
       <Title>{openMode ? "Open questioning" : "Ask around the circle"}</Title>
+
+      <Card style={{ display: "flex", justifyContent: "center", padding: "18px 20px" }}>
+        <WallClock startedAt={room.roundStartedAt} durationSec={room.roundDurationSec} />
+      </Card>
 
       {openMode && (
         <div style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(85,136,201,0.14)", border: `1px solid ${C.blue}`, borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
