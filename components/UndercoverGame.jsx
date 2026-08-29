@@ -230,12 +230,18 @@ function useOpenMode(startedAt, durationSec) {
   return openMode;
 }
 
-/* Rectangular player card — avatar, name, points, optional badge/right slot. */
-function PlayerRow({ player, points, badge, badgeColor, right, onClick, highlight }) {
+/* Rectangular player card — avatar, name, points, optional badge/right slot.
+   `isMe` gives the current user's own row a distinct cream treatment so
+   they can immediately spot themselves apart from everyone else. */
+function PlayerRow({ player, points, badge, badgeColor, right, onClick, highlight, isMe }) {
+  const meStyle = isMe
+    ? { border: `1.5px solid ${C.cream}`, background: "rgba(243,234,214,0.10)" }
+    : { border: `1px solid ${highlight ? C.blue : C.line}`, background: highlight ? "rgba(85,136,201,0.12)" : "rgba(0,0,0,0.2)" };
   return (
-    <div className="prow" onClick={onClick} style={{ border: `1px solid ${highlight ? C.blue : C.line}`, background: highlight ? "rgba(85,136,201,0.12)" : "rgba(0,0,0,0.2)", cursor: onClick ? "pointer" : "default" }}>
-      <Avatar name={player.name} size={38} />
-      <span style={{ fontSize: 13, color: C.cream, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{player.name}</span>
+    <div className="prow" onClick={onClick} style={{ ...meStyle, cursor: onClick ? "pointer" : "default" }}>
+      <Avatar name={player.name} size={38} ring={isMe ? C.cream : undefined} />
+      <span style={{ fontSize: 13, color: C.cream, fontWeight: isMe ? 700 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{player.name}</span>
+      {isMe && <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: C.ink, background: C.cream, borderRadius: 999, padding: "2px 8px" }}>You</span>}
       {badge && <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: badgeColor || C.blue, border: `1px solid ${badgeColor || C.blue}`, borderRadius: 999, padding: "2px 8px" }}>{badge}</span>}
       <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 12, fontWeight: 700, color: C.blueSoft }}>{points ?? 0} pt{(points ?? 0) !== 1 ? "s" : ""}</span>
       {right}
@@ -436,7 +442,7 @@ function LobbyScreen({ room, me, selectedCats, toggleCat, roundMinutes, setRound
         <div style={{ fontSize: 12, color: C.creamDim, textAlign: "center", marginBottom: 18 }}>Share this code — friends tap "Join Room" and enter it</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {room.players.map(p => (
-            <PlayerRow key={p.id} player={p} points={room.scores[p.id]} badge={p.id === room.hostId ? "Host" : null} />
+            <PlayerRow key={p.id} player={p} points={room.scores[p.id]} badge={p.id === room.hostId ? "Host" : null} isMe={p.id === me.id} />
           ))}
         </div>
         <div style={{ fontSize: 12, color: C.creamDim, textAlign: "center", marginTop: 14 }}>{room.players.length} player{room.players.length !== 1 ? "s" : ""} in room {canStart ? "" : "· need at least 3 to start"}</div>
@@ -468,6 +474,7 @@ function TurnPanel({ room, imDone, toggleEndVote, openMode }) {
   const endCount = Object.keys(room.endVotes || {}).length;
   const endMajority = Math.floor(room.players.length / 2) + 1;
   const iVotedEnd = !!(room.endVotes || {})[room.__meId];
+  const iAmAsker = room.__meId === room.currentAsker;
   return (
     <Card>
       <Eyebrow>Turn</Eyebrow>
@@ -481,7 +488,7 @@ function TurnPanel({ room, imDone, toggleEndVote, openMode }) {
           <div className="turn-card" style={{ marginBottom: 18 }}>
             <div className="turn-side">
               <Avatar name={asker?.name} size={54} ring={C.blue} />
-              <span className="name" style={{ fontSize: 13, fontWeight: 700, color: C.cream }}>{asker?.name}</span>
+              <span className="name" style={{ fontSize: 13, fontWeight: 700, color: C.cream }}>{asker?.name}{iAmAsker ? " (you)" : ""}</span>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: C.blue }}>Asking</span>
             </div>
             <ArrowRight size={22} color={C.blueSoft} style={{ flexShrink: 0 }} />
@@ -491,7 +498,13 @@ function TurnPanel({ room, imDone, toggleEndVote, openMode }) {
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: C.blueSoft }}>Answering</span>
             </div>
           </div>
-          <PrimaryButton onClick={imDone}>I'm done — next pair <ArrowRight size={16} /></PrimaryButton>
+          {iAmAsker ? (
+            <PrimaryButton onClick={imDone}>I'm done — next pair <ArrowRight size={16} /></PrimaryButton>
+          ) : (
+            <div style={{ textAlign: "center", fontSize: 13, color: C.creamDim, padding: "13px 0", border: `1px dashed ${C.line}`, borderRadius: 12 }}>
+              Waiting for <b style={{ color: C.cream }}>{asker?.name}</b> to finish asking…
+            </div>
+          )}
         </>
       )}
       <div style={{ marginTop: 12 }}>
@@ -569,7 +582,8 @@ function GameScreen({ room, me, imDone, toggleEndVote, leaveRoom }) {
                 <PlayerRow key={p.id} player={p} points={room.scores[p.id]}
                   badge={!openMode && p.id === room.currentAsker ? "Asking" : !openMode && p.id === room.currentTarget ? "Answering" : null}
                   badgeColor={p.id === room.currentAsker ? C.blue : C.blueSoft}
-                  highlight={!openMode && (p.id === room.currentAsker || p.id === room.currentTarget)} />
+                  highlight={!openMode && (p.id === room.currentAsker || p.id === room.currentTarget)}
+                  isMe={p.id === me.id} />
               ))}
             </div>
           </Card>
@@ -594,7 +608,7 @@ function VotingScreen({ room, me, castVote, leaveRoom }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
           {room.players.map(p => (
             <PlayerRow key={p.id} player={p} points={room.scores[p.id]} onClick={() => castVote(p.id)} highlight={myVote === p.id}
-              badge={myVote === p.id ? "Your guess" : null} badgeColor={C.blue} />
+              badge={myVote === p.id ? "Your guess" : null} badgeColor={C.blue} isMe={p.id === me.id} />
           ))}
         </div>
         <div style={{ textAlign: "center", fontSize: 13, color: C.creamDim }}>{totalVoted < room.players.length ? `Waiting on ${room.players.length - totalVoted} more vote${room.players.length - totalVoted !== 1 ? "s" : ""}…` : "Everyone's voted — revealing…"}</div>
@@ -671,7 +685,7 @@ function RevealScreen({ room, me, playAgain, leaveRoom }) {
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}><Trophy size={16} color={C.blue} /><b style={{ fontFamily: serif, fontSize: 17 }}>Standings</b></div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {standings.map((p, i) => (
-                <PlayerRow key={p.id} player={p} points={room.scores[p.id]} highlight={i === 0} badge={i === 0 ? "1st" : null} />
+                <PlayerRow key={p.id} player={p} points={room.scores[p.id]} highlight={i === 0} badge={i === 0 ? "1st" : null} isMe={p.id === me.id} />
               ))}
             </div>
           </Card>
