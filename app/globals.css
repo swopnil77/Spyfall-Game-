@@ -5,3 +5,22 @@ html, body {
   margin: 0;
   padding: 0;
 }
+
+.game-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 760px) {
+  .game-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+}
+
+.chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.press-btn { transition: transform 0.1s ease, box-shadow 0.15s ease; }
+.press-btn:active { transform: scale(0.95); }
+
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spin-icon { animation: spin 0.8s linear infinite; }
+
+.turn-card { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.turn-side { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.turn-side span.name { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.prow { display: flex; align-items: center; gap: 12px; border-radius: 12px; padding: 10px 12px; }

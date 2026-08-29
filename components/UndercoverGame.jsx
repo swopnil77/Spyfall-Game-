@@ -1,12 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Radio, Eye, ArrowRight, LogOut, Sparkles, Check, X, Bell, Trophy } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Radio, Eye, ArrowRight, LogOut, Sparkles, Check, X, Bell, Trophy, Loader2 } from "lucide-react";
 
 /* =========================================================================
-   SUPABASE CONFIG — set these in .env.local
-   NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key
+   SUPABASE CONFIG
    ========================================================================= */
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://YOUR-PROJECT-REF.supabase.co";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "YOUR-ANON-PUBLIC-KEY";
@@ -14,16 +12,18 @@ const sbHeaders = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE
 const CONFIGURED = !SUPABASE_URL.includes("YOUR-PROJECT-REF") && !SUPABASE_ANON_KEY.includes("YOUR-ANON");
 
 /* =========================================================================
-   DESIGN TOKENS
+   DESIGN TOKENS — cream & black, blue as the only accent
    ========================================================================= */
 const C = {
-  ink: "#0d1019", panel: "#161a2c", panel2: "#1e2338",
-  coral: "#e5574b", gold: "#d1a34f", teal: "#3fab97",
-  cream: "#f3efe6", muted: "#8b8fa8", line: "rgba(243,239,230,0.12)",
+  ink: "#121110", panel: "#1b1917", panel2: "#232019",
+  cream: "#f3ead6", creamDim: "#c8bd9e",
+  blue: "#5588c9", blueDeep: "#3a6699", blueSoft: "#93b7de",
+  line: "rgba(243,234,214,0.14)",
 };
+const AVATAR_SWATCHES = ["#5588c9", "#93b7de", "#e3d4ad", "#c8bd9e", "#6f93b8", "#f3ead6"];
 const serif = "'Georgia','Iowan Old Style','Times New Roman',serif";
 const sans = "'Inter',-apple-system,BlinkMacSystemFont,sans-serif";
-const OPEN_WINDOW_SEC = 120; // final 2 minutes = open questioning
+const OPEN_WINDOW_SEC = 120;
 
 /* =========================================================================
    GAME DATA
@@ -45,7 +45,7 @@ const CAT_KEYS = Object.keys(CATEGORIES);
    ========================================================================= */
 const uid = (n = 10) => { const c = "abcdefghijklmnopqrstuvwxyz0123456789"; let s = ""; for (let i=0;i<n;i++) s += c[Math.floor(Math.random()*c.length)]; return s; };
 const roomCode = () => { const c = "ABCDEFGHJKLMNPQRSTUVWXYZ"; let s = ""; for (let i=0;i<4;i++) s += c[Math.floor(Math.random()*c.length)]; return s; };
-const hashColor = (str) => { let h=0; for (let i=0;i<str.length;i++) h = str.charCodeAt(i) + ((h<<5)-h); const hue = Math.abs(h)%360; return `hsl(${hue} 62% 56%)`; };
+const hashColor = (str) => { let h=0; for (let i=0;i<str.length;i++) h = str.charCodeAt(i) + ((h<<5)-h); return AVATAR_SWATCHES[Math.abs(h) % AVATAR_SWATCHES.length]; };
 const initials = (name) => (name||"?").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
 const pick = (arr) => arr[Math.floor(Math.random()*arr.length)];
 
@@ -102,13 +102,13 @@ async function saveRoom(room) {
 }
 
 /* =========================================================================
-   SIGNATURE VISUAL
+   SIGNATURE VISUAL — viewfinder frame for the home illustration
    ========================================================================= */
-function ViewfinderFrame({ children, size = 260, tone = C.coral }) {
+function ViewfinderFrame({ children, size = 260, tone = C.blue }) {
   const ticks = Array.from({ length: 14 });
   return (
     <div style={{ position: "relative", width: size, height: size, margin: "0 auto" }}>
-      <div style={{ position: "absolute", inset: 0, borderRadius: 20, border: `1.5px solid ${tone}`, boxShadow: `0 0 0 5px ${C.ink}, 0 0 30px rgba(229,87,75,0.15)`, overflow: "hidden", background: "linear-gradient(160deg,#232a45,#141827)" }}>
+      <div style={{ position: "absolute", inset: 0, borderRadius: 20, border: `1.5px solid ${tone}`, boxShadow: `0 0 0 5px ${C.ink}, 0 0 30px rgba(85,136,201,0.18)`, overflow: "hidden", background: "linear-gradient(160deg,#232019,#161513)" }}>
         {children}
       </div>
       {["-10px", `${size + 2}px`].map((top, ti) => (
@@ -125,38 +125,38 @@ function DetectiveArt() {
     <svg viewBox="0 0 260 260" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
       <defs>
         <radialGradient id="glow" cx="50%" cy="18%" r="60%">
-          <stop offset="0%" stopColor="#3a3f66" /><stop offset="100%" stopColor="#161a2c" />
+          <stop offset="0%" stopColor="#2c3a4d" /><stop offset="100%" stopColor="#161513" />
         </radialGradient>
       </defs>
       <rect width="260" height="260" fill="url(#glow)" />
-      <line x1="130" y1="0" x2="130" y2="46" stroke="#4a4f74" strokeWidth="2" />
-      <ellipse cx="130" cy="54" rx="22" ry="8" fill="#e9c873" opacity="0.85" />
-      <ellipse cx="130" cy="54" rx="22" ry="8" fill="none" stroke="#c79f4a" strokeWidth="1.5" />
-      <rect x="192" y="70" width="46" height="70" rx="3" fill="#20263f" stroke="#3c4266" strokeWidth="2" />
-      <line x1="215" y1="70" x2="215" y2="140" stroke="#3c4266" strokeWidth="2" />
-      <rect x="196" y="76" width="18" height="28" fill="#d1794f" opacity="0.35" />
-      <rect x="14" y="150" width="46" height="60" rx="10" fill="#7a3230" />
-      <rect x="10" y="140" width="54" height="26" rx="10" fill="#8a3a37" />
+      <line x1="130" y1="0" x2="130" y2="46" stroke="#4a5568" strokeWidth="2" />
+      <ellipse cx="130" cy="54" rx="22" ry="8" fill="#e3d4ad" opacity="0.85" />
+      <ellipse cx="130" cy="54" rx="22" ry="8" fill="none" stroke="#c8bd9e" strokeWidth="1.5" />
+      <rect x="192" y="70" width="46" height="70" rx="3" fill="#1e2733" stroke="#3c4a5c" strokeWidth="2" />
+      <line x1="215" y1="70" x2="215" y2="140" stroke="#3c4a5c" strokeWidth="2" />
+      <rect x="196" y="76" width="18" height="28" fill="#5588c9" opacity="0.35" />
+      <rect x="14" y="150" width="46" height="60" rx="10" fill="#2f3d4d" />
+      <rect x="10" y="140" width="54" height="26" rx="10" fill="#374a5e" />
       <g>
-        <ellipse cx="132" cy="118" rx="17" ry="18" fill="#12141f" />
-        <path d="M112 106 q20 -22 40 0 q-4 -18 -20 -18 q-16 0 -20 18 z" fill="#12141f" />
-        <path d="M118 218 L118 150 q0 -22 14 -22 q14 0 14 22 l0 68 z" fill="#171a28" />
-        <path d="M100 220 l10 -70 q4 -14 22 -14 q18 0 22 14 l10 70 z" fill="#0f111c" />
-        <path d="M100 170 q-18 6 -22 26" stroke="#0f111c" strokeWidth="10" fill="none" strokeLinecap="round" />
-        <path d="M164 170 q18 6 22 26" stroke="#0f111c" strokeWidth="10" fill="none" strokeLinecap="round" />
+        <ellipse cx="132" cy="118" rx="17" ry="18" fill="#0d0d0c" />
+        <path d="M112 106 q20 -22 40 0 q-4 -18 -20 -18 q-16 0 -20 18 z" fill="#0d0d0c" />
+        <path d="M118 218 L118 150 q0 -22 14 -22 q14 0 14 22 l0 68 z" fill="#141412" />
+        <path d="M100 220 l10 -70 q4 -14 22 -14 q18 0 22 14 l10 70 z" fill="#0a0a09" />
+        <path d="M100 170 q-18 6 -22 26" stroke="#0a0a09" strokeWidth="10" fill="none" strokeLinecap="round" />
+        <path d="M164 170 q18 6 22 26" stroke="#0a0a09" strokeWidth="10" fill="none" strokeLinecap="round" />
         <rect x="96" y="188" width="68" height="44" rx="2" fill="#e9dfc4" transform="rotate(-3 130 210)" />
         <line x1="106" y1="200" x2="150" y2="196" stroke="#b9a97c" strokeWidth="1.5" transform="rotate(-3 130 210)" />
         <line x1="106" y1="210" x2="150" y2="206" stroke="#b9a97c" strokeWidth="1.5" transform="rotate(-3 130 210)" />
         <line x1="106" y1="220" x2="140" y2="217" stroke="#b9a97c" strokeWidth="1.5" transform="rotate(-3 130 210)" />
       </g>
-      <rect x="0" y="236" width="260" height="24" fill="#2a2440" opacity="0.6" />
+      <rect x="0" y="236" width="260" height="24" fill="#1b1917" opacity="0.6" />
     </svg>
   );
 }
 
 function Avatar({ name, size = 44, ring }) {
   return (
-    <div style={{ width: size, height: size, borderRadius: "50%", flexShrink: 0, background: hashColor(name || "?"), display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: size * 0.34, color: "#141426", border: ring ? `3px solid ${ring}` : "2px solid rgba(255,255,255,0.15)", boxShadow: ring ? `0 0 16px ${ring}` : "none", transition: "all .25s ease" }}>
+    <div style={{ width: size, height: size, borderRadius: "50%", flexShrink: 0, background: hashColor(name || "?"), display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: size * 0.34, color: "#141412", border: ring ? `3px solid ${ring}` : "2px solid rgba(243,234,214,0.15)", boxShadow: ring ? `0 0 14px ${ring}` : "none", transition: "all .25s ease" }}>
       {initials(name)}
     </div>
   );
@@ -164,37 +164,51 @@ function Avatar({ name, size = 44, ring }) {
 
 /* ---------------- Primitives ---------------- */
 function Card({ children, style }) {
-  return <div style={{ background: `linear-gradient(180deg,${C.panel},${C.panel2})`, border: `1px solid ${C.line}`, borderRadius: 18, padding: 22, marginBottom: 16, boxShadow: "0 14px 34px rgba(0,0,0,0.35)", ...style }}>{children}</div>;
+  return <div style={{ background: `linear-gradient(180deg,${C.panel},${C.panel2})`, border: `1px solid ${C.line}`, borderRadius: 18, padding: 22, marginBottom: 16, boxShadow: "0 14px 34px rgba(0,0,0,0.4)", ...style }}>{children}</div>;
 }
+
+/* Buttons: press feedback (scale) is instant via CSS; async onClick shows a
+   spinner + "Working…" label so the person always sees something happened. */
 function PrimaryButton({ children, onClick, disabled, style }) {
+  const [busy, setBusy] = useState(false);
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
+  async function handle(e) {
+    if (disabled || busy || !onClick) return;
+    setBusy(true);
+    try { await onClick(e); } finally { if (mounted.current) setBusy(false); }
+  }
   return (
-    <button onClick={onClick} disabled={disabled} style={{ width: "100%", fontFamily: sans, fontWeight: 700, fontSize: 15, letterSpacing: 0.2, background: disabled ? "#5a4038" : C.coral, color: "#1b0f0d", border: "none", borderRadius: 12, padding: "14px 18px", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.55 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: disabled ? "none" : "0 8px 20px rgba(229,87,75,0.35)", ...style }}>{children}</button>
+    <button className="press-btn" onClick={handle} disabled={disabled || busy} style={{ width: "100%", fontFamily: sans, fontWeight: 700, fontSize: 15, letterSpacing: 0.2, background: disabled ? "#4a453a" : C.blue, color: "#0d0d0c", border: "none", borderRadius: 12, padding: "14px 18px", cursor: disabled || busy ? "not-allowed" : "pointer", opacity: disabled ? 0.55 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: disabled ? "none" : "0 8px 20px rgba(85,136,201,0.35)", ...style }}>
+      {busy ? <><Loader2 size={16} className="spin-icon" /> Working…</> : children}
+    </button>
   );
 }
 function GhostButton({ children, onClick, active, style }) {
+  const [busy, setBusy] = useState(false);
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
+  async function handle(e) {
+    if (busy || !onClick) return;
+    setBusy(true);
+    try { await onClick(e); } finally { if (mounted.current) setBusy(false); }
+  }
   return (
-    <button onClick={onClick} style={{ width: "100%", fontFamily: sans, fontWeight: 700, fontSize: 14, background: active ? "rgba(63,171,151,0.16)" : "transparent", color: active ? C.teal : C.cream, border: `1px solid ${active ? C.teal : C.line}`, borderRadius: 12, padding: "13px 18px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, ...style }}>{children}</button>
+    <button className="press-btn" onClick={handle} disabled={busy} style={{ width: "100%", fontFamily: sans, fontWeight: 700, fontSize: 14, background: active ? "rgba(85,136,201,0.16)" : "transparent", color: active ? C.blue : C.cream, border: `1px solid ${active ? C.blue : C.line}`, borderRadius: 12, padding: "13px 18px", cursor: busy ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, ...style }}>
+      {busy ? <Loader2 size={15} className="spin-icon" /> : children}
+    </button>
   );
 }
-function Eyebrow({ children }) { return <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: C.gold, fontWeight: 700, marginBottom: 6, fontFamily: sans }}>{children}</div>; }
+function Eyebrow({ children }) { return <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: C.blue, fontWeight: 700, marginBottom: 6, fontFamily: sans }}>{children}</div>; }
 function Title({ children }) { return <h1 style={{ fontFamily: serif, fontSize: 32, fontWeight: 700, color: C.cream, margin: "0 0 6px", letterSpacing: 0.2 }}>{children}</h1>; }
-function Sub({ children }) { return <p style={{ color: C.muted, fontSize: 14, lineHeight: 1.6, margin: "0 0 22px", fontFamily: sans }}>{children}</p>; }
+function Sub({ children }) { return <p style={{ color: C.creamDim, fontSize: 14, lineHeight: 1.6, margin: "0 0 22px", fontFamily: sans }}>{children}</p>; }
 
-const labelStyle = { display: "block", fontSize: 12, color: C.muted, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: sans };
-const inputStyle = { width: "100%", background: "rgba(0,0,0,0.25)", border: `1px solid ${C.line}`, color: C.cream, padding: "12px 14px", borderRadius: 10, fontSize: 16, outline: "none", marginBottom: 14, fontFamily: sans, boxSizing: "border-box" };
+const labelStyle = { display: "block", fontSize: 12, color: C.creamDim, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: sans };
+const inputStyle = { width: "100%", background: "rgba(0,0,0,0.3)", border: `1px solid ${C.line}`, color: C.cream, padding: "12px 14px", borderRadius: 10, fontSize: 16, outline: "none", marginBottom: 14, fontFamily: sans, boxSizing: "border-box" };
 
-function fmtClock(sec) {
-  sec = Math.max(0, Math.round(sec));
-  const m = Math.floor(sec / 60), s = sec % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
-function computeRemaining(startedAt, durationSec) {
-  if (!startedAt) return durationSec;
-  return Math.max(0, durationSec - (Date.now() - startedAt) / 1000);
-}
+function fmtClock(sec) { sec = Math.max(0, Math.round(sec)); const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${s.toString().padStart(2, "0")}`; }
+function computeRemaining(startedAt, durationSec) { if (!startedAt) return durationSec; return Math.max(0, durationSec - (Date.now() - startedAt) / 1000); }
 
-/* Ticks its own text every second WITHOUT forcing the parent screen to
-   re-render — keeps the player circle / spy checklist perfectly still. */
 const CountdownLabel = React.memo(function CountdownLabel({ startedAt, durationSec }) {
   const [remaining, setRemaining] = useState(() => computeRemaining(startedAt, durationSec));
   useEffect(() => {
@@ -204,8 +218,6 @@ const CountdownLabel = React.memo(function CountdownLabel({ startedAt, durationS
   return <>{fmtClock(remaining)}</>;
 });
 
-/* Only re-renders GameScreen when the open/closed boundary actually flips
-   (twice per round), not every second. */
 function useOpenMode(startedAt, durationSec) {
   const [openMode, setOpenMode] = useState(() => computeRemaining(startedAt, durationSec) <= OPEN_WINDOW_SEC);
   useEffect(() => {
@@ -216,6 +228,19 @@ function useOpenMode(startedAt, durationSec) {
     return () => clearInterval(id);
   }, [startedAt, durationSec]);
   return openMode;
+}
+
+/* Rectangular player card — avatar, name, points, optional badge/right slot. */
+function PlayerRow({ player, points, badge, badgeColor, right, onClick, highlight }) {
+  return (
+    <div className="prow" onClick={onClick} style={{ border: `1px solid ${highlight ? C.blue : C.line}`, background: highlight ? "rgba(85,136,201,0.12)" : "rgba(0,0,0,0.2)", cursor: onClick ? "pointer" : "default" }}>
+      <Avatar name={player.name} size={38} />
+      <span style={{ fontSize: 13, color: C.cream, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{player.name}</span>
+      {badge && <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: badgeColor || C.blue, border: `1px solid ${badgeColor || C.blue}`, borderRadius: 999, padding: "2px 8px" }}>{badge}</span>}
+      <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 12, fontWeight: 700, color: C.blueSoft }}>{points ?? 0} pt{(points ?? 0) !== 1 ? "s" : ""}</span>
+      {right}
+    </div>
+  );
 }
 
 /* =========================================================================
@@ -302,9 +327,7 @@ export default function App() {
     if (ev[me.id]) delete ev[me.id]; else ev[me.id] = true;
     let next = { ...fresh, endVotes: ev };
     const majority = Math.floor(fresh.players.length / 2) + 1;
-    if (Object.keys(ev).length >= majority && fresh.status === "playing") {
-      next = { ...next, status: "voting" };
-    }
+    if (Object.keys(ev).length >= majority && fresh.status === "playing") next = { ...next, status: "voting" };
     await saveRoom(next); setRoom(next); if (next.status !== fresh.status) setScreen(next.status);
   }
   async function castVote(targetId) {
@@ -325,12 +348,8 @@ export default function App() {
     const scores = { ...r.scores };
     correctVoters.forEach(p => { scores[p.id] = (scores[p.id] || 0) + 1; });
     let next;
-    if (majorityCaught) {
-      next = { ...r, scores, votingResolved: true, status: "spyGuess" };
-    } else {
-      scores[r.spyId] = (scores[r.spyId] || 0) + 2;
-      next = { ...r, scores, votingResolved: true, status: "reveal" };
-    }
+    if (majorityCaught) next = { ...r, scores, votingResolved: true, status: "spyGuess" };
+    else { scores[r.spyId] = (scores[r.spyId] || 0) + 2; next = { ...r, scores, votingResolved: true, status: "reveal" }; }
     await saveRoom(next); setRoom(next); setScreen(next.status);
     resolvingRef.current = false;
   }, []);
@@ -348,14 +367,13 @@ export default function App() {
     setRoom(null); setScreen("home"); setJoinError("");
   }
 
-  // auto-resolve voting once everyone has voted
-  useEffect(() => {
-    if (room && room.status === "voting") resolveVoting();
-  }, [room, resolveVoting]);
+  useEffect(() => { if (room && room.status === "voting") resolveVoting(); }, [room, resolveVoting]);
+
+  const wide = screen === "playing" || screen === "voting" || screen === "reveal" || screen === "spyGuess";
 
   return (
-    <div style={{ minHeight: "100vh", background: `radial-gradient(circle at 20% -10%, #262c4c 0%, transparent 45%), radial-gradient(circle at 110% 10%, #201c38 0%, transparent 40%), ${C.ink}`, color: C.cream, fontFamily: sans, padding: "24px 16px 60px" }}>
-      <div style={{ maxWidth: 440, margin: "0 auto" }}>
+    <div style={{ minHeight: "100vh", background: `radial-gradient(circle at 20% -10%, #1e2733 0%, transparent 45%), radial-gradient(circle at 110% 10%, #1b1917 0%, transparent 40%), ${C.ink}`, color: C.cream, fontFamily: sans, padding: "24px 16px 60px" }}>
+      <div style={{ maxWidth: wide ? 860 : 440, margin: "0 auto" }}>
         {screen === "home" && <HomeScreen {...{ name, setName, homeTab, setHomeTab, codeInput, setCodeInput, joinError, createRoom, joinRoom }} />}
         {screen === "lobby" && room && <LobbyScreen {...{ room, me, selectedCats, toggleCat, roundMinutes, setRoundMinutes, startGame, leaveRoom }} />}
         {screen === "playing" && room && <GameScreen {...{ room, me, imDone, toggleEndVote, leaveRoom }} />}
@@ -378,15 +396,15 @@ function HomeScreen({ name, setName, homeTab, setHomeTab, codeInput, setCodeInpu
         <Sub>One of you doesn't know the secret. Everyone else does. Ask sly questions, read the room, and unmask the spy — or bluff your way through as one.</Sub>
       </div>
       {!CONFIGURED && (
-        <Card style={{ borderColor: C.coral }}>
-          <b style={{ color: C.coral }}>Supabase not connected yet</b>
-          <p style={{ color: C.muted, fontSize: 13, margin: "8px 0 0" }}>Set <code>NEXT_PUBLIC_SUPABASE_URL</code> and <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> in your <code>.env.local</code>.</p>
+        <Card style={{ borderColor: C.blue }}>
+          <b style={{ color: C.blue }}>Supabase not connected yet</b>
+          <p style={{ color: C.creamDim, fontSize: 13, margin: "8px 0 0" }}>Set <code>NEXT_PUBLIC_SUPABASE_URL</code> and <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> in your <code>.env.local</code>.</p>
         </Card>
       )}
       <Card>
-        <div style={{ display: "flex", background: "rgba(0,0,0,0.25)", borderRadius: 12, padding: 4, marginBottom: 18 }}>
+        <div style={{ display: "flex", background: "rgba(0,0,0,0.3)", borderRadius: 12, padding: 4, marginBottom: 18 }}>
           {["create", "join"].map(t => (
-            <button key={t} onClick={() => setHomeTab(t)} style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 9, fontWeight: 700, fontSize: 13, cursor: "pointer", background: homeTab === t ? C.coral : "transparent", color: homeTab === t ? "#1b0f0d" : C.muted }}>{t === "create" ? "Create Room" : "Join Room"}</button>
+            <button key={t} className="press-btn" onClick={() => setHomeTab(t)} style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 9, fontWeight: 700, fontSize: 13, cursor: "pointer", background: homeTab === t ? C.blue : "transparent", color: homeTab === t ? "#0d0d0c" : C.creamDim }}>{t === "create" ? "Create Room" : "Join Room"}</button>
           ))}
         </div>
         <label style={labelStyle}>Your name</label>
@@ -397,10 +415,10 @@ function HomeScreen({ name, setName, homeTab, setHomeTab, codeInput, setCodeInpu
             <input style={{ ...inputStyle, textTransform: "uppercase" }} placeholder="e.g. QXTP" maxLength={6} value={codeInput} onChange={e => setCodeInput(e.target.value)} />
           </>
         )}
-        {joinError && <div style={{ color: C.coral, fontSize: 13, margin: "-8px 0 12px" }}>{joinError}</div>}
+        {joinError && <div style={{ color: C.blue, fontSize: 13, margin: "-8px 0 12px" }}>{joinError}</div>}
         <PrimaryButton onClick={homeTab === "create" ? createRoom : joinRoom}>{homeTab === "create" ? <>Create New Room <ArrowRight size={16} /></> : <>Join Existing Room <ArrowRight size={16} /></>}</PrimaryButton>
       </Card>
-      <p style={{ fontSize: 11, color: C.muted, textAlign: "center", marginTop: 26, lineHeight: 1.6, opacity: 0.8 }}>Photos of real people, posters and character art are kept out of this game for copyright reasons — every player and item gets a colour-coded badge instead.</p>
+      <p style={{ fontSize: 11, color: C.creamDim, textAlign: "center", marginTop: 26, lineHeight: 1.6, opacity: 0.8 }}>Photos of real people, posters and character art are kept out of this game for copyright reasons — every player and item gets a colour-coded badge instead.</p>
     </>
   );
 }
@@ -414,25 +432,21 @@ function LobbyScreen({ room, me, selectedCats, toggleCat, roundMinutes, setRound
       <Eyebrow>Lobby</Eyebrow>
       <Title>Waiting for players</Title>
       <Card>
-        <div style={{ fontFamily: serif, fontSize: 42, fontWeight: 700, letterSpacing: "0.15em", color: C.gold, textAlign: "center", padding: "14px 0" }}>{room.code}</div>
-        <div style={{ fontSize: 12, color: C.muted, textAlign: "center", marginBottom: 18 }}>Share this code — friends tap "Join Room" and enter it</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 14, justifyContent: "center" }}>
+        <div style={{ fontFamily: serif, fontSize: 42, fontWeight: 700, letterSpacing: "0.15em", color: C.blue, textAlign: "center", padding: "14px 0" }}>{room.code}</div>
+        <div style={{ fontSize: 12, color: C.creamDim, textAlign: "center", marginBottom: 18 }}>Share this code — friends tap "Join Room" and enter it</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {room.players.map(p => (
-            <div key={p.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 64 }}>
-              <Avatar name={p.name} />
-              <span style={{ fontSize: 11, color: C.muted, textAlign: "center", maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
-              {p.id === room.hostId && <div style={{ color: C.gold, fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase" }}>Host</div>}
-            </div>
+            <PlayerRow key={p.id} player={p} points={room.scores[p.id]} badge={p.id === room.hostId ? "Host" : null} />
           ))}
         </div>
-        <div style={{ fontSize: 12, color: C.muted, textAlign: "center", marginTop: 14 }}>{room.players.length} player{room.players.length !== 1 ? "s" : ""} in room {canStart ? "" : "· need at least 3 to start"}</div>
+        <div style={{ fontSize: 12, color: C.creamDim, textAlign: "center", marginTop: 14 }}>{room.players.length} player{room.players.length !== 1 ? "s" : ""} in room {canStart ? "" : "· need at least 3 to start"}</div>
       </Card>
       {isHost ? (
         <Card>
           <label style={labelStyle}>Categories in play</label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 18 }}>
             {CAT_KEYS.map(k => (
-              <div key={k} onClick={() => toggleCat(k)} style={{ border: `1px solid ${selectedCats.has(k) ? C.teal : C.line}`, borderRadius: 10, padding: "10px 12px", cursor: "pointer", fontSize: 13, background: selectedCats.has(k) ? "rgba(63,171,151,0.14)" : "rgba(0,0,0,0.15)" }}>{CATEGORIES[k].icon} {CATEGORIES[k].label}</div>
+              <div key={k} onClick={() => toggleCat(k)} style={{ border: `1px solid ${selectedCats.has(k) ? C.blue : C.line}`, borderRadius: 10, padding: "10px 12px", cursor: "pointer", fontSize: 13, background: selectedCats.has(k) ? "rgba(85,136,201,0.14)" : "rgba(0,0,0,0.2)" }}>{CATEGORIES[k].icon} {CATEGORIES[k].label}</div>
             ))}
           </div>
           <label style={labelStyle}>Round length (minutes) — last 2 min are open questioning</label>
@@ -447,50 +461,60 @@ function LobbyScreen({ room, me, selectedCats, toggleCat, roundMinutes, setRound
   );
 }
 
-/* ---------------- Turn viewfinder ---------------- */
-const TurnViewfinder = React.memo(function TurnViewfinder({ room, openMode }) {
-  const players = room.players;
-  const n = players.length;
-  const R = 96, cx = 130, cy = 130;
-  const nameOf = id => (players.find(p => p.id === id) || {}).name || "?";
+/* ---------------- Turn panel (side) ---------------- */
+function TurnPanel({ room, imDone, toggleEndVote, openMode }) {
+  const asker = room.players.find(p => p.id === room.currentAsker);
+  const target = room.players.find(p => p.id === room.currentTarget);
+  const endCount = Object.keys(room.endVotes || {}).length;
+  const endMajority = Math.floor(room.players.length / 2) + 1;
+  const iVotedEnd = !!(room.endVotes || {})[room.__meId];
   return (
-    <div style={{ position: "relative", width: 260, height: 260, margin: "8px auto 0" }}>
-      {players.map((p, i) => {
-        const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
-        const x = cx + R * Math.cos(angle), y = cy + R * Math.sin(angle);
-        const ring = openMode ? undefined : (p.id === room.currentAsker ? C.gold : p.id === room.currentTarget ? C.teal : undefined);
-        return (
-          <div key={p.id} style={{ position: "absolute", left: x - 27, top: y - 27, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: 54 }}>
-            <Avatar name={p.name} size={50} ring={ring} />
-            <span style={{ fontSize: 10, color: C.muted, whiteSpace: "nowrap" }}>{p.name}</span>
+    <Card>
+      <Eyebrow>Turn</Eyebrow>
+      {openMode ? (
+        <div style={{ textAlign: "center", padding: "10px 0 4px" }}>
+          <Radio size={22} color={C.blueSoft} />
+          <div style={{ fontSize: 13, color: C.creamDim, marginTop: 8 }}>Open questioning — anyone can ask anyone.</div>
+        </div>
+      ) : (
+        <>
+          <div className="turn-card" style={{ marginBottom: 18 }}>
+            <div className="turn-side">
+              <Avatar name={asker?.name} size={54} ring={C.blue} />
+              <span className="name" style={{ fontSize: 13, fontWeight: 700, color: C.cream }}>{asker?.name}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: C.blue }}>Asking</span>
+            </div>
+            <ArrowRight size={22} color={C.blueSoft} style={{ flexShrink: 0 }} />
+            <div className="turn-side">
+              <Avatar name={target?.name} size={54} ring={C.blueSoft} />
+              <span className="name" style={{ fontSize: 13, fontWeight: 700, color: C.cream }}>{target?.name}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: C.blueSoft }}>Answering</span>
+            </div>
           </div>
-        );
-      })}
-      <Radio size={22} color={C.line} style={{ position: "absolute", left: cx - 11, top: cy - 11, opacity: 0.35 }} />
-    </div>
+          <PrimaryButton onClick={imDone}>I'm done — next pair <ArrowRight size={16} /></PrimaryButton>
+        </>
+      )}
+      <div style={{ marginTop: 12 }}>
+        <GhostButton onClick={toggleEndVote} active={iVotedEnd}>
+          <Sparkles size={15} /> {iVotedEnd ? "Voted to end round" : "Vote to end round"} · {endCount}/{room.players.length} (need {endMajority})
+        </GhostButton>
+      </div>
+    </Card>
   );
-});
+}
 
 /* ---------------- Game screen ---------------- */
 function GameScreen({ room, me, imDone, toggleEndVote, leaveRoom }) {
   const iAmSpy = room.spyId === me.id;
   const cat = CATEGORIES[room.item.category];
-  const nameOf = id => (room.players.find(p => p.id === id) || {}).name || "?";
   const openMode = useOpenMode(room.roundStartedAt, room.roundDurationSec);
 
   const [marks, setMarks] = useState({});
   useEffect(() => { setMarks({}); }, [room.round]);
   function cycleMark(itemName) {
-    setMarks(m => {
-      const cur = m[itemName];
-      const next = cur === "tick" ? "cross" : cur === "cross" ? undefined : "tick";
-      return { ...m, [itemName]: next };
-    });
+    setMarks(m => { const cur = m[itemName]; const next = cur === "tick" ? "cross" : cur === "cross" ? undefined : "tick"; return { ...m, [itemName]: next }; });
   }
-
-  const endCount = Object.keys(room.endVotes || {}).length;
-  const endMajority = Math.floor(room.players.length / 2) + 1;
-  const iVotedEnd = !!(room.endVotes || {})[me.id];
+  const roomWithMe = { ...room, __meId: me.id };
 
   return (
     <>
@@ -498,61 +522,59 @@ function GameScreen({ room, me, imDone, toggleEndVote, leaveRoom }) {
       <Title>{openMode ? "Open questioning" : "Ask around the circle"}</Title>
 
       {openMode && (
-        <div style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(229,87,75,0.16)", border: `1px solid ${C.coral}`, borderRadius: 12, padding: "12px 14px", marginBottom: 16, animation: "none" }}>
-          <Bell size={18} color={C.coral} />
-          <span style={{ fontSize: 13, color: C.cream }}><b style={{ color: C.coral }}>Final <CountdownLabel startedAt={room.roundStartedAt} durationSec={room.roundDurationSec} /></b> — anyone can ask anyone now!</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(85,136,201,0.14)", border: `1px solid ${C.blue}`, borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
+          <Bell size={18} color={C.blue} />
+          <span style={{ fontSize: 13, color: C.cream }}><b style={{ color: C.blue }}>Final <CountdownLabel startedAt={room.roundStartedAt} durationSec={room.roundDurationSec} /></b> — anyone can ask anyone now!</span>
         </div>
       )}
 
-      <Card style={{ textAlign: "center", padding: "26px 20px", background: iAmSpy ? `linear-gradient(180deg, rgba(229,87,75,0.22), ${C.panel2})` : `linear-gradient(180deg, rgba(63,171,151,0.18), ${C.panel2})`, borderColor: iAmSpy ? "rgba(229,87,75,0.5)" : "rgba(63,171,151,0.5)" }}>
-        {iAmSpy ? (
-          <>
-            <div style={{ width: 66, height: 66, borderRadius: 16, margin: "0 auto 12px", background: C.coral, display: "flex", alignItems: "center", justifyContent: "center" }}><Eye size={26} color="#1b0f0d" /></div>
-            <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>You're the Spy</div>
-            <div style={{ color: C.muted, fontSize: 13, marginBottom: 16 }}>Category: <b style={{ color: C.cream }}>{cat.label}</b>. Mark items off as you rule them in or out.</div>
-            <div style={{ textAlign: "left", maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
-              {cat.items.map(it => {
-                const mark = marks[it];
-                return (
-                  <div key={it} onClick={() => cycleMark(it)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 8, cursor: "pointer", background: "rgba(0,0,0,0.2)", border: `1px solid ${mark === "tick" ? C.teal : mark === "cross" ? C.coral : C.line}` }}>
-                    <div style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: mark === "tick" ? C.teal : mark === "cross" ? C.coral : "transparent", border: `1px solid ${C.line}` }}>
-                      {mark === "tick" && <Check size={13} color="#0d1019" />}
-                      {mark === "cross" && <X size={13} color="#0d1019" />}
-                    </div>
-                    <span style={{ fontSize: 13, color: mark === "cross" ? C.muted : C.cream, textDecoration: mark === "cross" ? "line-through" : "none" }}>{it}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        ) : (
-          <>
-            <div style={{ width: 66, height: 66, borderRadius: 16, margin: "0 auto 12px", background: C.teal, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>{cat.icon}</div>
-            <Eyebrow>{cat.label}</Eyebrow>
-            <div style={{ fontSize: 24, fontWeight: 700 }}>{room.item.name}</div>
-            <Sub>One player at the table doesn't know this. Ask questions that prove you know it — without saying it outright.</Sub>
-          </>
-        )}
-      </Card>
-
-      <Card>
-        <TurnViewfinder room={room} openMode={openMode} />
-        {!openMode ? (
-          <>
-            <div style={{ textAlign: "center", fontSize: 15, margin: "10px 0 18px" }}>
-              <b style={{ color: C.gold }}>{nameOf(room.currentAsker)}</b> <span style={{ color: C.teal }}>→ asks →</span> <b style={{ color: C.teal }}>{nameOf(room.currentTarget)}</b>
-            </div>
-            <PrimaryButton onClick={imDone}>I'm done — next pair <ArrowRight size={16} /></PrimaryButton>
-          </>
-        ) : (
-          <div style={{ textAlign: "center", fontSize: 13, color: C.muted, margin: "10px 0 4px" }}>Anyone can ask anyone until time runs out.</div>
-        )}
-        <div style={{ marginTop: 12 }}>
-          <GhostButton onClick={toggleEndVote} active={iVotedEnd}>
-            <Sparkles size={15} /> {iVotedEnd ? "Voted to end round" : "Vote to end round"} · {endCount}/{room.players.length} (need {endMajority})
-          </GhostButton>
+      <div className="game-grid">
+        <div>
+          <Card style={{ textAlign: "center", padding: "26px 20px", background: iAmSpy ? `linear-gradient(180deg, rgba(85,136,201,0.16), ${C.panel2})` : `linear-gradient(180deg, rgba(147,183,222,0.12), ${C.panel2})`, borderColor: iAmSpy ? "rgba(85,136,201,0.5)" : "rgba(147,183,222,0.4)" }}>
+            {iAmSpy ? (
+              <>
+                <div style={{ width: 66, height: 66, borderRadius: 16, margin: "0 auto 12px", background: C.blue, display: "flex", alignItems: "center", justifyContent: "center" }}><Eye size={26} color="#0d0d0c" /></div>
+                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>You're the Spy</div>
+                <div style={{ color: C.creamDim, fontSize: 13, marginBottom: 16 }}>Category: <b style={{ color: C.cream }}>{cat.label}</b>. Tap items to mark them in or out.</div>
+                <div className="chip-grid" style={{ justifyContent: "center" }}>
+                  {cat.items.map(it => {
+                    const mark = marks[it];
+                    return (
+                      <div key={it} onClick={() => cycleMark(it)} className="press-btn" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 11px", borderRadius: 999, cursor: "pointer", background: mark === "tick" ? "rgba(85,136,201,0.22)" : mark === "cross" ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.22)", border: `1px solid ${mark === "tick" ? C.blue : mark === "cross" ? C.creamDim : C.line}` }}>
+                        {mark === "tick" && <Check size={13} color={C.blue} />}
+                        {mark === "cross" && <X size={13} color={C.creamDim} />}
+                        <span style={{ fontSize: 12.5, color: mark === "cross" ? C.creamDim : C.cream, textDecoration: mark === "cross" ? "line-through" : "none" }}>{it}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ width: 66, height: 66, borderRadius: 16, margin: "0 auto 12px", background: C.blueSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>{cat.icon}</div>
+                <Eyebrow>{cat.label}</Eyebrow>
+                <div style={{ fontSize: 24, fontWeight: 700 }}>{room.item.name}</div>
+                <Sub>One player at the table doesn't know this. Ask questions that prove you know it — without saying it outright.</Sub>
+              </>
+            )}
+          </Card>
         </div>
-      </Card>
+
+        <div>
+          <TurnPanel room={roomWithMe} imDone={imDone} toggleEndVote={toggleEndVote} openMode={openMode} />
+          <Card>
+            <Eyebrow>Table</Eyebrow>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {room.players.map(p => (
+                <PlayerRow key={p.id} player={p} points={room.scores[p.id]}
+                  badge={!openMode && p.id === room.currentAsker ? "Asking" : !openMode && p.id === room.currentTarget ? "Answering" : null}
+                  badgeColor={p.id === room.currentAsker ? C.blue : C.blueSoft}
+                  highlight={!openMode && (p.id === room.currentAsker || p.id === room.currentTarget)} />
+              ))}
+            </div>
+          </Card>
+        </div>
+      </div>
       <GhostButton onClick={leaveRoom}><LogOut size={15} /> Leave room</GhostButton>
     </>
   );
@@ -571,14 +593,11 @@ function VotingScreen({ room, me, castVote, leaveRoom }) {
       <Card>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
           {room.players.map(p => (
-            <div key={p.id} onClick={() => castVote(p.id)} style={{ display: "flex", alignItems: "center", gap: 12, border: `1px solid ${myVote === p.id ? C.coral : C.line}`, borderRadius: 12, padding: "10px 12px", background: "rgba(0,0,0,0.15)", cursor: "pointer" }}>
-              <Avatar name={p.name} size={38} />
-              <span>{p.name}</span>
-              {myVote === p.id && <span style={{ marginLeft: "auto", fontSize: 11, color: C.coral, fontWeight: 700 }}>YOUR GUESS</span>}
-            </div>
+            <PlayerRow key={p.id} player={p} points={room.scores[p.id]} onClick={() => castVote(p.id)} highlight={myVote === p.id}
+              badge={myVote === p.id ? "Your guess" : null} badgeColor={C.blue} />
           ))}
         </div>
-        <div style={{ textAlign: "center", fontSize: 13, color: C.muted }}>{totalVoted < room.players.length ? `Waiting on ${room.players.length - totalVoted} more vote${room.players.length - totalVoted !== 1 ? "s" : ""}…` : "Everyone's voted — revealing…"}</div>
+        <div style={{ textAlign: "center", fontSize: 13, color: C.creamDim }}>{totalVoted < room.players.length ? `Waiting on ${room.players.length - totalVoted} more vote${room.players.length - totalVoted !== 1 ? "s" : ""}…` : "Everyone's voted — revealing…"}</div>
       </Card>
       <GhostButton onClick={leaveRoom}><LogOut size={15} /> Leave room</GhostButton>
     </>
@@ -605,9 +624,9 @@ function SpyGuessScreen({ room, me, spySubmitGuess, leaveRoom }) {
       <Title>Last chance — name the item</Title>
       <Sub>The table caught you. Pick what you think the secret {cat.label.toLowerCase()} item was — get it right for 1 point.</Sub>
       <Card>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 320, overflowY: "auto" }}>
+        <div className="chip-grid">
           {cat.items.map(it => (
-            <div key={it} onClick={() => spySubmitGuess(it)} style={{ padding: "10px 12px", borderRadius: 10, border: `1px solid ${C.line}`, cursor: "pointer", background: "rgba(0,0,0,0.15)", fontSize: 14 }}>{it}</div>
+            <div key={it} onClick={() => spySubmitGuess(it)} className="press-btn" style={{ padding: "9px 13px", borderRadius: 999, border: `1px solid ${C.line}`, cursor: "pointer", background: "rgba(0,0,0,0.22)", fontSize: 13 }}>{it}</div>
           ))}
         </div>
       </Card>
@@ -631,32 +650,33 @@ function RevealScreen({ room, me, playAgain, leaveRoom }) {
     <>
       <Eyebrow>Round {room.round} · Results</Eyebrow>
       <Title>Reveal</Title>
-      <Card style={{ textAlign: "center", padding: "26px 20px" }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}><Avatar name={spyName} size={60} /></div>
-        <div style={{ fontSize: 21, fontWeight: 700, color: C.coral, margin: "4px 0" }}>{spyName} was the spy</div>
-        <Eyebrow>{cat.label}</Eyebrow>
-        <div style={{ fontSize: 21, fontWeight: 700, color: C.teal, margin: "4px 0" }}>{room.item.name}</div>
-        <div style={{ fontSize: 14, margin: "14px 0 0", padding: 10, borderRadius: 10, background: majorityCaught ? "rgba(63,171,151,0.16)" : "rgba(229,87,75,0.16)", color: majorityCaught ? C.teal : C.coral }}>
-          {majorityCaught
-            ? `Majority caught the spy (${correctVoters.length}/${crew.length} crew guessed right)${room.spyGuessCorrect ? " — but the spy named the item correctly for +1." : room.spyGuessCorrect === false ? " — and the spy's guess was wrong." : "."}`
-            : `The spy evaded a majority (${correctVoters.length}/${crew.length} crew guessed right) — spy earns +2.`}
-        </div>
-      </Card>
-      <Card>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}><Trophy size={16} color={C.gold} /><b style={{ fontFamily: serif, fontSize: 17 }}>Standings</b></div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {standings.map((p, i) => (
-            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 9, background: i === 0 ? "rgba(209,163,79,0.14)" : "rgba(0,0,0,0.15)" }}>
-              <span style={{ width: 18, textAlign: "center", color: C.muted, fontSize: 12 }}>{i + 1}</span>
-              <Avatar name={p.name} size={32} />
-              <span style={{ fontSize: 13 }}>{p.name}</span>
-              <span style={{ marginLeft: "auto", fontWeight: 700, color: C.gold }}>{room.scores[p.id] || 0} pt{(room.scores[p.id] || 0) !== 1 ? "s" : ""}</span>
+      <div className="game-grid">
+        <div>
+          <Card style={{ textAlign: "center", padding: "26px 20px" }}>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}><Avatar name={spyName} size={60} /></div>
+            <div style={{ fontSize: 21, fontWeight: 700, color: C.blue, margin: "4px 0" }}>{spyName} was the spy</div>
+            <Eyebrow>{cat.label}</Eyebrow>
+            <div style={{ fontSize: 21, fontWeight: 700, color: C.blueSoft, margin: "4px 0" }}>{room.item.name}</div>
+            <div style={{ fontSize: 14, margin: "14px 0 0", padding: 10, borderRadius: 10, background: "rgba(85,136,201,0.14)", color: C.cream }}>
+              {majorityCaught
+                ? `Majority caught the spy (${correctVoters.length}/${crew.length} crew guessed right)${room.spyGuessCorrect ? " — but the spy named the item correctly for +1." : room.spyGuessCorrect === false ? " — and the spy's guess was wrong." : "."}`
+                : `The spy evaded a majority (${correctVoters.length}/${crew.length} crew guessed right) — spy earns +2.`}
             </div>
-          ))}
+          </Card>
+          {isHost ? <PrimaryButton onClick={playAgain}>Play another round <ArrowRight size={16} /></PrimaryButton> : <Card><Sub>Waiting for the host to start the next round…</Sub></Card>}
+          <div style={{ marginTop: 10 }}><GhostButton onClick={leaveRoom}><LogOut size={15} /> Leave room</GhostButton></div>
         </div>
-      </Card>
-      {isHost ? <PrimaryButton onClick={playAgain}>Play another round <ArrowRight size={16} /></PrimaryButton> : <Card><Sub>Waiting for the host to start the next round…</Sub></Card>}
-      <div style={{ marginTop: 10 }}><GhostButton onClick={leaveRoom}><LogOut size={15} /> Leave room</GhostButton></div>
+        <div>
+          <Card>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}><Trophy size={16} color={C.blue} /><b style={{ fontFamily: serif, fontSize: 17 }}>Standings</b></div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {standings.map((p, i) => (
+                <PlayerRow key={p.id} player={p} points={room.scores[p.id]} highlight={i === 0} badge={i === 0 ? "1st" : null} />
+              ))}
+            </div>
+          </Card>
+        </div>
+      </div>
     </>
   );
 }
