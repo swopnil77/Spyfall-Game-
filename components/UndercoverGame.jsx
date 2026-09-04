@@ -24,25 +24,27 @@ const AVATAR_SWATCHES = ["#5588c9", "#93b7de", "#e3d4ad", "#c8bd9e", "#6f93b8", 
 const serif = "'Georgia','Iowan Old Style','Times New Roman',serif";
 const sans = "'Inter',-apple-system,BlinkMacSystemFont,sans-serif";
 const OPEN_WINDOW_SEC = 120;
+const VOTE_TIMER_SEC = 60;
+const SPY_GUESS_TIMER_SEC = 60;
 
 /* =========================================================================
    GAME DATA
    ========================================================================= */
 const CATEGORIES = {
-  movies: { label: "Movies", icon: "🎬", items: ["Titanic","Inception","Avatar","Parasite","The Godfather","Jurassic Park","Interstellar","The Dark Knight","Frozen","Avengers: Endgame","La La Land","Coco","Spirited Away","Whiplash","Joker","The Matrix","Forrest Gump","Gladiator","The Lion King","Toy Story","Jerry Maguire"] },
-  tvshows: { label: "TV Shows", icon: "📺", items: ["Friends","Breaking Bad","Game of Thrones","The Office","Stranger Things","Money Heist","Sherlock","The Crown","Dark","Chernobyl","Better Call Saul","The Simpsons","Squid Game","The Mandalorian","Peaky Blinders","Rick and Morty","The Witcher","Loki","House of the Dragon","Wednesday","Prison Break","Narcos"] },
-  celebrities: { label: "Actors & Singers", icon: "🌟", items: ["Shah Rukh Khan","Taylor Swift","Dwayne Johnson","Priyanka Chopra","Beyoncé","Tom Cruise","Rihanna","Leonardo DiCaprio","Emma Watson","Jungkook","Zendaya","Robert Downey Jr.","Selena Gomez","Salman Khan","Deepika Padukone","Keanu Reeves","Billie Eilish","Chris Hemsworth","Scarlett Johansson","Ed Sheeran","Ariana Grande","Justin Bieber","Tom Holland","Dua Lipa","Bruno Mars","Adele","Brad Pitt","Angelina Jolie","Hrithik Roshan","Amitabh Bachchan","Alia Bhatt"] },
-  sportsStars: { label: "Sports Stars", icon: "🏅", items: ["Cristiano Ronaldo","Lionel Messi","Virat Kohli","Serena Williams","LeBron James","Neymar","Usain Bolt","Roger Federer","Kylian Mbappé","Novak Djokovic","Sachin Tendulkar","Michael Jordan","Rafael Nadal","Tom Brady","Simone Biles","Mike Tyson","Kobe Bryant","Muhammad Ali","Michael Phelps","MS Dhoni","Bruno Fernandes","David Beckham","Shane Warne"] },
-  indianActors: { label: "Indian Actors & Actresses", icon: "🎭", items: ["Shah Rukh Khan","Amitabh Bachchan","Aamir Khan","Salman Khan","Hrithik Roshan","Akshay Kumar","Ranbir Kapoor","Ranveer Singh","Rajinikanth","Kamal Haasan","Prabhas","Allu Arjun","Yash","Vijay","Mahesh Babu","Irrfan Khan","Naseeruddin Shah","Deepika Padukone","Priyanka Chopra","Alia Bhatt","Kareena Kapoor","Katrina Kaif","Aishwarya Rai","Vidya Balan","Madhuri Dixit","Sridevi","Rekha","Nayanthara","Samantha Ruth Prabhu","Kajol","Sushant Singh Rajput","Rajkummar Rao","Kartik Aaryan","Ayushmann Khurrana","Vicky Kaushal","Nawazuddin Siddiqui","Pankaj Tripathi","Manoj Bajpayee","Tabu","Taapsee Pannu","Kangana Ranaut","Konkona Sen Sharma","Bhumi Pednekar"] },
-  famousPeople: { label: "Famous People", icon: "🧠", items: ["Elon Musk","Kim Kardashian","Bill Gates","Mark Zuckerberg","Jeff Bezos","Oprah Winfrey","Barack Obama","Mahatma Gandhi","Albert Einstein","Steve Jobs","Warren Buffett","Malala Yousafzai","Nelson Mandela","Martin Luther King Jr.","Marie Curie","Dalai Lama","Queen Elizabeth II","Stephen Hawking","Pope Francis","Vladimir Putin"] },
-  locations: { label: "Locations", icon: "📍", items: ["Airplane","Bank","Beach","Casino","Cathedral","Circus Tent","Corporate Party","Crusader Army","Embassy","Hospital","Hotel","Military Base","Movie Studio","Ocean Liner","Passenger Train","Polar Station","Police Station","Restaurant","School","Service Station","Space Station","Submarine","Supermarket","Theater"] },
-  politicians: { label: "Nepal Politicians", icon: "🏛️", items: ["KP Sharma Oli","Pushpa Kamal Dahal","Sher Bahadur Deuba","Madhav Kumar Nepal","Baburam Bhattarai","Rabi Lamichhane","Bidya Devi Bhandari","Ram Chandra Poudel","Jhala Nath Khanal","Upendra Yadav","Bamdev Gautam","Gagan Thapa","Bishnu Prasad Paudel","Kamal Thapa","Mahantha Thakur","Rajendra Lingden","Narayan Kaji Shrestha","Hisila Yami","Renu Dahal","Balen Shah","Harka Sampang","Mahesh Basnet","Prakash Man Singh","Yubaraj Khatiwada"] },
+  movies: { label: "Movies", icon: "🎬", items: ["Titanic","Inception","Avatar","Parasite","The Godfather","Jurassic Park","Interstellar","The Dark Knight","Frozen","Avengers: Endgame","La La Land","Coco","Spirited Away","Whiplash","Joker","The Matrix","Forrest Gump","Gladiator","The Lion King","Toy Story","Jerry Maguire","The Shawshank Redemption","Pulp Fiction","Fight Club","The Silence of the Lambs","Schindler's List","Saving Private Ryan","The Green Mile","Se7en","The Prestige","Django Unchained","Inglourious Basterds","The Departed","No Country for Old Men","The Social Network","Shutter Island"] },
+  tvshows: { label: "TV Shows", icon: "📺", items: ["Friends","Breaking Bad","Game of Thrones","The Office","Stranger Things","Money Heist","Sherlock","The Crown","Dark","Chernobyl","Better Call Saul","The Simpsons","Squid Game","The Mandalorian","Peaky Blinders","Rick and Morty","The Witcher","Loki","House of the Dragon","Wednesday","Prison Break","Narcos","Suits","Ozark","The Boys","You","Ted Lasso","Succession","Fargo","True Detective","Vikings","The Umbrella Academy","Cobra Kai","Emily in Paris","Bridgerton","Outer Banks"] },
+  celebrities: { label: "Actors & Singers", icon: "🌟", items: ["Shah Rukh Khan","Taylor Swift","Dwayne Johnson","Priyanka Chopra","Beyoncé","Tom Cruise","Rihanna","Leonardo DiCaprio","Emma Watson","Jungkook","Zendaya","Robert Downey Jr.","Selena Gomez","Salman Khan","Deepika Padukone","Keanu Reeves","Billie Eilish","Chris Hemsworth","Scarlett Johansson","Ed Sheeran","Ariana Grande","Justin Bieber","Tom Holland","Dua Lipa","Bruno Mars","Adele","Brad Pitt","Angelina Jolie","Hrithik Roshan","Amitabh Bachchan","Alia Bhatt","Michael Jackson","Madonna","Freddie Mercury","Lady Gaga","Elvis Presley"] },
+  sportsStars: { label: "Sports Stars", icon: "🏅", items: ["Cristiano Ronaldo","Lionel Messi","Virat Kohli","Serena Williams","LeBron James","Neymar","Usain Bolt","Roger Federer","Kylian Mbappé","Novak Djokovic","Sachin Tendulkar","Michael Jordan","Rafael Nadal","Tom Brady","Simone Biles","Mike Tyson","Kobe Bryant","Muhammad Ali","Michael Phelps","MS Dhoni","Neeraj Chopra","David Beckham","Shane Warne","Wayne Rooney","Zinedine Zidane","Ronaldinho","Pelé","Diego Maradona","Stephen Curry","Shaquille O'Neal","Andre Agassi","Venus Williams","Yuvraj Singh","Rohit Sharma","Babar Azam","Saina Nehwal"] },
+  famousPeople: { label: "Famous People", icon: "🧠", items: ["Elon Musk","Kim Kardashian","Bill Gates","Mark Zuckerberg","Jeff Bezos","Oprah Winfrey","Barack Obama","Mahatma Gandhi","Albert Einstein","Steve Jobs","Warren Buffett","Malala Yousafzai","Nelson Mandela","Martin Luther King Jr.","Marie Curie","Dalai Lama","Queen Elizabeth II","Stephen Hawking","Pope Francis","Vladimir Putin","Isaac Newton","Charles Darwin","Leonardo da Vinci","Nikola Tesla","Walt Disney","Henry Ford","Thomas Edison","Rosa Parks","Abraham Lincoln","Winston Churchill","Confucius","Aristotle","Plato","J.K. Rowling","Jack Ma","Ratan Tata"] },
+  locations: { label: "Locations", icon: "📍", items: ["Airplane","Bank","Beach","Casino","Cathedral","Circus Tent","Corporate Party","Crusader Army","Embassy","Hospital","Hotel","Military Base","Movie Studio","Ocean Liner","Passenger Train","Polar Station","Police Station","Restaurant","School","Service Station","Space Station","Submarine","Supermarket","Theater","Amusement Park","Art Museum","Battleship","Broadcast Center","Cargo Ship","Day Spa","Ice Hockey Stadium","Jail","Night Club","Pirate Ship","University","Zoo"] },
+  politicians: { label: "Nepal Politicians", icon: "🏛️", items: ["KP Sharma Oli","Pushpa Kamal Dahal","Sher Bahadur Deuba","Madhav Kumar Nepal","Baburam Bhattarai","Rabi Lamichhane","Bidya Devi Bhandari","Ram Chandra Poudel","Jhala Nath Khanal","Upendra Yadav","Bamdev Gautam","Gagan Thapa","Bishnu Prasad Paudel","Kamal Thapa","Mahantha Thakur","Rajendra Lingden","Narayan Kaji Shrestha","Hisila Yami","Renu Dahal","Balen Shah","Harka Sampang","Mahesh Basnet","Prakash Man Singh","Yubaraj Khatiwada","Sujata Koirala","Krishna Bahadur Mahara","Subas Chandra Nembang","Onsari Gharti Magar","Ram Baran Yadav","Sushil Koirala","Bijay Kumar Gachhadar","Ishwor Pokhrel","Pampha Bhusal","Amik Sherchan","Ram Sahay Prasad Yadav","Bimalendra Nidhi"] },
   districts: { label: "Nepal Districts", icon: "🗺️", items: ["Kathmandu","Lalitpur","Bhaktapur","Kaski","Chitwan","Morang","Sunsari","Jhapa","Rupandehi","Kailali","Kanchanpur","Banke","Bardiya","Dang","Palpa","Gorkha","Lamjung","Tanahun","Syangja","Baglung","Myagdi","Mustang","Manang","Rasuwa","Nuwakot","Dhading","Makwanpur","Sindhuli","Ramechhap","Dolakha","Solukhumbu","Okhaldhunga","Khotang","Bhojpur","Dhankuta","Ilam","Panchthar","Taplejung","Terhathum","Udayapur"] },
   countries: { label: "Countries", icon: "🌍", items: ["Nepal","India","China","USA","UK","France","Germany","Japan","South Korea","Australia","Brazil","Canada","Russia","Italy","Spain","Mexico","Egypt","South Africa","Thailand","Vietnam","Indonesia","Turkey","Saudi Arabia","UAE","Bhutan","Bangladesh","Sri Lanka","Pakistan","Argentina","Switzerland","Nigeria","Kenya","Ethiopia","Ghana","Morocco","Algeria","Iran","Iraq","Israel","Jordan","Qatar","Kuwait","Oman","Singapore","Malaysia","Philippines","Myanmar","Cambodia","Mongolia","Kazakhstan","Ukraine","Poland","Netherlands","Sweden","Norway","Denmark","Portugal","Greece","New Zealand","Chile"] },
-  anime: { label: "Anime Characters", icon: "⚔️", items: ["Naruto Uzumaki","Monkey D. Luffy","Goku","Levi Ackerman","Light Yagami","Eren Yeager","Itachi Uchiha","Saitama","Edward Elric","Tanjiro Kamado","Nezuko Kamado","Sasuke Uchiha","L Lawliet","Vegeta","Ichigo Kurosaki","Gon Freecss","Killua Zoldyck","Mikasa Ackerman","Rem","Izuku Midoriya","All Might","Sailor Moon","Spike Spiegel","Kakashi Hatake","Zoro Roronoa"] },
-  food: { label: "Food", icon: "🍕", items: ["Pizza","Burger","Sushi","Momo","Pasta","Tacos","Ramen","Biryani","Pancakes","Dumplings","Croissant","Curry","Sandwich","Steak","Waffles","Fried Rice","Noodles","Ice Cream","Chocolate","Samosa","Paneer Tikka","Dal Bhat","Chowmein","Pav Bhaji","Sel Roti","Gundruk","Dhido","Yomari","Thukpa","Sekuwa","Chatamari","Juju Dhau","Butter Chicken","Chole Bhature","Dosa","Idli","Vada Pav","Gulab Jamun","Jalebi","Rasgulla"] },
-  hindiMovies: { label: "Hindi Movies", icon: "🎥", items: ["Hum Aapke Hain Koun","Dilwale Dulhania Le Jayenge","Kuch Kuch Hota Hai","Lagaan","Kabhi Khushi Kabhie Gham","Devdas","Koi Mil Gaya","Veer-Zaara","Rang De Basanti","Lage Raho Munna Bhai","Om Shanti Om","Jab We Met","3 Idiots","My Name Is Khan","Zindagi Na Milegi Dobara","Barfi!","Kai Po Che","Queen","PK","Bajrangi Bhaijaan","Dangal","Sultan","Hindi Medium","Raees","Saajan","Lamhe","Khalnayak","Baazigar","Darr","Hum Hain Rahi Pyar Ke","Andaz Apna Apna","Mohra","1942: A Love Story","Rangeela","Karan Arjun","Coolie No. 1","Raja Hindustani","Border","Dil To Pagal Hai","Pardes","Kaho Naa... Pyaar Hai","Mohabbatein","Refugee","Dhadkan","Gadar: Ek Prem Katha","Dil Chahta Hai","Kal Ho Naa Ho","Munna Bhai M.B.B.S.","Main Hoon Na","Dhoom","Hum Tum","Swades","Black","Bunty Aur Babli","Salaam Namaste","Parineeta","Dhoom 2","Krrish","Fanaa","Chak De! India","Taare Zameen Par","Welcome","Race","Jodhaa Akbar","Ghajini","Kaminey","Love Aaj Kal","Dabangg","Delhi Belly","Rockstar","Ra.One","Agneepath","Kahaani","Ek Tha Tiger","Jab Tak Hai Jaan","Yeh Jawaani Hai Deewani","Chennai Express","Goliyon Ki Raasleela Ram-Leela","Highway","2 States","Kick","Happy New Year","Tanu Weds Manu Returns","Piku","Bajirao Mastani","Dilwale","ABCD 2","Airlift","Neerja","Kapoor & Sons","Ae Dil Hai Mushkil","M.S. Dhoni: The Untold Story","Fan","Jolly LLB 2","Tiger Zinda Hai","Badrinath Ki Dulhania","Bareilly Ki Barfi","Newton","Secret Superstar","Golmaal Again"] },  animals: { label: "Animals", icon: "🐾", items: ["Lion","Tiger","Elephant","Giraffe","Zebra","Kangaroo","Panda","Koala","Cheetah","Wolf","Fox","Bear","Gorilla","Chimpanzee","Rhino","Hippopotamus","Crocodile","Eagle","Owl","Penguin","Dolphin","Whale","Shark","Octopus","Snake","Leopard","Hyena","Camel","Horse","Deer","Peacock","Parrot","Squirrel","Rabbit","Buffalo"] },
+  anime: { label: "Anime Characters", icon: "⚔️", items: ["Naruto Uzumaki","Monkey D. Luffy","Goku","Levi Ackerman","Light Yagami","Eren Yeager","Itachi Uchiha","Saitama","Edward Elric","Tanjiro Kamado","Nezuko Kamado","Sasuke Uchiha","L Lawliet","Vegeta","Ichigo Kurosaki","Gon Freecss","Killua Zoldyck","Mikasa Ackerman","Rem","Izuku Midoriya","All Might","Sailor Moon","Spike Spiegel","Kakashi Hatake","Zoro Roronoa","Natsu Dragneel","Erza Scarlet","Asta","Yuji Itadori","Satoru Gojo","Todoroki Shoto","Bakugo Katsuki","Yusuke Urameshi","Inuyasha","Rin Okumura","Rukia Kuchiki"] },
+  food: { label: "Food", icon: "🍕", items: ["Pizza","Burger","Sushi","Momo","Pasta","Tacos","Ramen","Biryani","Pancakes","Dumplings","Croissant","Curry","Sandwich","Steak","Waffles","Fried Rice","Noodles","Ice Cream","Chocolate","Samosa","Paneer Tikka","Dal Bhat","Chowmein","Pav Bhaji","Sel Roti","Gundruk","Dhido","Yomari","Thukpa","Sekuwa","Chatamari","Juju Dhau","Butter Chicken","Chole Bhature","Dosa","Idli","Vada Pav","Gulab Jamun","Jalebi","Rasgulla","Hot Dog","French Fries","Nachos","Fried Chicken","Grilled Cheese","Lasagna","Spaghetti","Popcorn","Donut","Bacon","Omelette","Hummus","Kebab","Burrito","Pretzel"] },  hindiMovies: { label: "Hindi Movies (1991–2017)", icon: "🎥", items: ["Hum Aapke Hain Koun","Dilwale Dulhania Le Jayenge","Kuch Kuch Hota Hai","Lagaan","Kabhi Khushi Kabhie Gham","Devdas","Koi Mil Gaya","Veer-Zaara","Rang De Basanti","Lage Raho Munna Bhai","Om Shanti Om","Jab We Met","3 Idiots","My Name Is Khan","Zindagi Na Milegi Dobara","Barfi!","Kai Po Che","Queen","PK","Bajrangi Bhaijaan","Dangal","Sultan","Hindi Medium","Raees","Saajan","Lamhe","Khalnayak","Baazigar","Darr","Hum Hain Rahi Pyar Ke","Andaz Apna Apna","Mohra","1942: A Love Story","Rangeela","Karan Arjun","Coolie No. 1","Raja Hindustani","Border","Dil To Pagal Hai","Pardes","Kaho Naa... Pyaar Hai","Mohabbatein","Refugee","Dhadkan","Gadar: Ek Prem Katha","Dil Chahta Hai","Kal Ho Naa Ho","Munna Bhai M.B.B.S.","Main Hoon Na","Dhoom","Hum Tum","Swades","Black","Bunty Aur Babli","Salaam Namaste","Parineeta","Dhoom 2","Krrish","Fanaa","Chak De! India","Taare Zameen Par","Welcome","Race","Jodhaa Akbar","Ghajini","Kaminey","Love Aaj Kal","Dabangg","Delhi Belly","Rockstar","Ra.One","Agneepath","Kahaani","Ek Tha Tiger","Jab Tak Hai Jaan","Yeh Jawaani Hai Deewani","Chennai Express","Goliyon Ki Raasleela Ram-Leela","Highway","2 States","Kick","Happy New Year","Tanu Weds Manu Returns","Piku","Bajirao Mastani","Dilwale","ABCD 2","Airlift","Neerja","Kapoor & Sons","Ae Dil Hai Mushkil","M.S. Dhoni: The Untold Story","Fan","Jolly LLB 2","Tiger Zinda Hai","Badrinath Ki Dulhania","Bareilly Ki Barfi","Newton","Secret Superstar","Golmaal Again"] },
+  animals: { label: "Animals", icon: "🐾", items: ["Lion","Tiger","Elephant","Giraffe","Zebra","Kangaroo","Panda","Koala","Cheetah","Wolf","Fox","Bear","Gorilla","Chimpanzee","Rhino","Hippopotamus","Crocodile","Eagle","Owl","Penguin","Dolphin","Whale","Shark","Octopus","Snake","Leopard","Hyena","Camel","Horse","Deer","Peacock","Parrot","Squirrel","Rabbit","Buffalo"] },
   fruits: { label: "Fruits", icon: "🍎", items: ["Apple","Banana","Mango","Orange","Grapes","Strawberry","Pineapple","Watermelon","Papaya","Guava","Kiwi","Peach","Pear","Cherry","Blueberry","Lychee","Pomegranate","Coconut","Lemon","Fig","Plum","Apricot","Dragon Fruit","Jackfruit","Custard Apple","Avocado","Blackberry","Raspberry","Cranberry","Cantaloupe","Honeydew Melon","Passion Fruit","Star Fruit","Mulberry","Persimmon","Tangerine","Grapefruit","Rambutan","Mangosteen","Nectarine"] },
+  indianActors: { label: "Indian Actors & Actresses", icon: "🎭", items: ["Shah Rukh Khan","Amitabh Bachchan","Aamir Khan","Salman Khan","Hrithik Roshan","Akshay Kumar","Ranbir Kapoor","Ranveer Singh","Rajinikanth","Kamal Haasan","Prabhas","Allu Arjun","Yash","Vijay","Mahesh Babu","Irrfan Khan","Naseeruddin Shah","Deepika Padukone","Priyanka Chopra","Alia Bhatt","Kareena Kapoor","Katrina Kaif","Aishwarya Rai","Vidya Balan","Madhuri Dixit","Sridevi","Rekha","Nayanthara","Samantha Ruth Prabhu","Kajol","Sushant Singh Rajput","Rajkummar Rao","Kartik Aaryan","Ayushmann Khurrana","Vicky Kaushal","Nawazuddin Siddiqui","Pankaj Tripathi","Manoj Bajpayee","Tabu","Taapsee Pannu","Kangana Ranaut","Konkona Sen Sharma","Bhumi Pednekar"] },
 };
 const CAT_KEYS = Object.keys(CATEGORIES);
 
@@ -54,6 +56,8 @@ const roomCode = () => { const c = "ABCDEFGHJKLMNPQRSTUVWXYZ"; let s = ""; for (
 const hashColor = (str) => { let h=0; for (let i=0;i<str.length;i++) h = str.charCodeAt(i) + ((h<<5)-h); return AVATAR_SWATCHES[Math.abs(h) % AVATAR_SWATCHES.length]; };
 const initials = (name) => (name||"?").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
 const pick = (arr) => arr[Math.floor(Math.random()*arr.length)];
+const shuffleArr = (arr) => { const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const ACTIVE_POOL_SIZE = 30;
 
 function pickNextPair(players, prevAsker, prevTarget) {
   const ids = players.map(p => p.id);
@@ -77,6 +81,8 @@ const roomToRow = (r) => ({
   current_asker: r.currentAsker, current_target: r.currentTarget,
   votes: r.votes, end_votes: r.endVotes, voting_resolved: r.votingResolved,
   spy_guess: r.spyGuess, spy_guess_correct: r.spyGuessCorrect,
+  active_items: r.activeItems, voting_started_at: r.votingStartedAt ? new Date(r.votingStartedAt).toISOString() : null,
+  spy_guess_started_at: r.spyGuessStartedAt ? new Date(r.spyGuessStartedAt).toISOString() : null,
 });
 const rowToRoom = (row) => ({
   code: row.code, hostId: row.host_id, players: row.players || [], categories: row.categories || [], status: row.status,
@@ -85,6 +91,8 @@ const rowToRoom = (row) => ({
   currentAsker: row.current_asker, currentTarget: row.current_target,
   votes: row.votes || {}, endVotes: row.end_votes || {}, votingResolved: !!row.voting_resolved,
   spyGuess: row.spy_guess || null, spyGuessCorrect: row.spy_guess_correct,
+  activeItems: row.active_items || [], votingStartedAt: row.voting_started_at ? new Date(row.voting_started_at).getTime() : null,
+  spyGuessStartedAt: row.spy_guess_started_at ? new Date(row.spy_guess_started_at).getTime() : null,
 });
 
 async function loadRoom(code) {
@@ -305,19 +313,29 @@ export default function App() {
   const [room, setRoom] = useState(null);
   const [selectedCats, setSelectedCats] = useState(new Set(CAT_KEYS));
   const [roundMinutes, setRoundMinutes] = useState(8);
-  const pollRef = useRef(null);
+  const pollTimeoutRef = useRef(null);
+  const pollStopRef = useRef(true);
   const roomRef = useRef(null);
   useEffect(() => { roomRef.current = room; }, [room]);
   useEffect(() => { me.name = name; }, [name]); // eslint-disable-line
 
+  // Self-scheduling poll: only ever queues the NEXT fetch after the current
+  // one resolves, instead of firing on a fixed clock. This prevents
+  // requests from stacking up if the network is slow — the exact thing
+  // that was making the game bog down after several rounds.
   const startPolling = useCallback((code) => {
-    if (pollRef.current) clearInterval(pollRef.current);
-    pollRef.current = setInterval(async () => {
+    if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+    pollStopRef.current = false;
+    const tick = async () => {
+      if (pollStopRef.current) return;
       const fresh = await loadRoom(code);
+      if (pollStopRef.current) return;
       if (fresh) { setRoom(fresh); setScreen(fresh.status); }
-    }, 2200);
+      if (!pollStopRef.current) pollTimeoutRef.current = setTimeout(tick, 2200);
+    };
+    pollTimeoutRef.current = setTimeout(tick, 2200);
   }, []);
-  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+  useEffect(() => () => { pollStopRef.current = true; if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current); }, []);
 
   async function createRoom() {
     if (!name.trim()) { setJoinError("Enter your name first."); return; }
@@ -352,15 +370,17 @@ export default function App() {
     const cats = [...selectedCats];
     if (!cats.length || !r) return;
     const catKey = pick(cats);
-    const itemName = pick(CATEGORIES[catKey].items);
+    const activeItems = shuffleArr(CATEGORIES[catKey].items).slice(0, ACTIVE_POOL_SIZE);
+    const itemName = pick(activeItems);
     const spy = pick(r.players).id;
     const { asker, target } = pickNextPair(r.players, null, null);
     const scores = { ...r.scores };
     r.players.forEach(p => { if (scores[p.id] === undefined) scores[p.id] = 0; });
     const next = {
-      ...r, categories: cats, status: "playing", item: { category: catKey, name: itemName }, spyId: spy,
+      ...r, categories: cats, status: "playing", item: { category: catKey, name: itemName }, activeItems, spyId: spy,
       scores, round: (r.round || 0) + 1, roundDurationSec: Math.max(60, roundMinutes * 60), roundStartedAt: Date.now(),
-      currentAsker: asker, currentTarget: target, votes: {}, endVotes: {}, votingResolved: false, spyGuess: null, spyGuessCorrect: null,
+      currentAsker: asker, currentTarget: target, votes: {}, endVotes: {}, votingResolved: false,
+      votingStartedAt: null, spyGuess: null, spyGuessCorrect: null, spyGuessStartedAt: null,
     };
     await saveRoom(next); setRoom(next); setScreen("playing");
   }
@@ -376,7 +396,7 @@ export default function App() {
     if (ev[me.id]) delete ev[me.id]; else ev[me.id] = true;
     let next = { ...fresh, endVotes: ev };
     const majority = Math.floor(fresh.players.length / 2) + 1;
-    if (Object.keys(ev).length >= majority && fresh.status === "playing") next = { ...next, status: "voting" };
+    if (Object.keys(ev).length >= majority && fresh.status === "playing") next = { ...next, status: "voting", votingStartedAt: Date.now() };
     await saveRoom(next); setRoom(next); if (next.status !== fresh.status) setScreen(next.status);
   }
   async function castVote(targetId) {
@@ -385,11 +405,11 @@ export default function App() {
     await saveRoom(fresh); setRoom(fresh);
   }
   const resolvingRef = useRef(false);
-  const resolveVoting = useCallback(async () => {
+  const resolveVoting = useCallback(async (force = false) => {
     if (resolvingRef.current) return;
     const r = roomRef.current;
     if (!r || r.status !== "voting" || r.votingResolved) return;
-    if (Object.keys(r.votes || {}).length < r.players.length) return;
+    if (!force && Object.keys(r.votes || {}).length < r.players.length) return;
     resolvingRef.current = true;
     const crew = r.players.filter(p => p.id !== r.spyId);
     const correctVoters = crew.filter(p => r.votes[p.id] === r.spyId);
@@ -397,11 +417,17 @@ export default function App() {
     const scores = { ...r.scores };
     correctVoters.forEach(p => { scores[p.id] = (scores[p.id] || 0) + 1; });
     let next;
-    if (majorityCaught) next = { ...r, scores, votingResolved: true, status: "spyGuess" };
+    if (majorityCaught) next = { ...r, scores, votingResolved: true, status: "spyGuess", spyGuessStartedAt: Date.now() };
     else { scores[r.spyId] = (scores[r.spyId] || 0) + 2; next = { ...r, scores, votingResolved: true, status: "reveal" }; }
     await saveRoom(next); setRoom(next); setScreen(next.status);
     resolvingRef.current = false;
   }, []);
+  async function spyGuessTimeout() {
+    const r = roomRef.current;
+    if (!r || r.status !== "spyGuess") return;
+    const next = { ...r, spyGuess: null, spyGuessCorrect: false, status: "reveal" };
+    await saveRoom(next); setRoom(next); setScreen("reveal");
+  }
   async function spySubmitGuess(guessName) {
     const r = roomRef.current;
     const correct = guessName === r.item.name;
@@ -422,6 +448,25 @@ export default function App() {
   }
 
   useEffect(() => { if (room && room.status === "voting") resolveVoting(); }, [room, resolveVoting]);
+
+  // Hard deadlines: if the 60s voting or spy-guess window runs out, force
+  // the round to move on even if not everyone acted in time.
+  useEffect(() => {
+    if (!room || room.status !== "voting" || !room.votingStartedAt) return;
+    const id = setInterval(() => {
+      const rem = computeRemaining(roomRef.current?.votingStartedAt, VOTE_TIMER_SEC);
+      if (rem <= 0 && roomRef.current?.status === "voting") resolveVoting(true);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [room?.status, room?.votingStartedAt, resolveVoting]);
+  useEffect(() => {
+    if (!room || room.status !== "spyGuess" || !room.spyGuessStartedAt) return;
+    const id = setInterval(() => {
+      const rem = computeRemaining(roomRef.current?.spyGuessStartedAt, SPY_GUESS_TIMER_SEC);
+      if (rem <= 0 && roomRef.current?.status === "spyGuess") spyGuessTimeout();
+    }, 1000);
+    return () => clearInterval(id);
+  }, [room?.status, room?.spyGuessStartedAt]);
 
   const wide = screen === "playing" || screen === "voting" || screen === "reveal" || screen === "spyGuess";
 
@@ -567,10 +612,28 @@ function TurnPanel({ room, imDone, toggleEndVote, openMode }) {
   );
 }
 
+/* Shows the round's 30-item pool to everyone, including during voting —
+   so the crew's questions and the spy's cover both stay grounded in a
+   pool everyone can see, not just what the spy is privately marking up. */
+function ItemsInPlayPanel({ room, cat }) {
+  const items = room.activeItems && room.activeItems.length ? room.activeItems : cat.items;
+  return (
+    <Card>
+      <Eyebrow>{cat.icon} Items in play this round ({items.length})</Eyebrow>
+      <div className="chip-grid">
+        {items.map(it => (
+          <span key={it} style={{ padding: "6px 11px", borderRadius: 999, fontSize: 12.5, background: "rgba(0,0,0,0.22)", border: `1px solid ${C.line}`, color: C.creamDim }}>{it}</span>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 /* ---------------- Game screen ---------------- */
 function GameScreen({ room, me, imDone, toggleEndVote, leaveRoom }) {
   const iAmSpy = room.spyId === me.id;
   const cat = CATEGORIES[room.item.category];
+  const poolItems = room.activeItems && room.activeItems.length ? room.activeItems : cat.items;
   const openMode = useOpenMode(room.roundStartedAt, room.roundDurationSec);
 
   const [marks, setMarks] = useState({});
@@ -605,7 +668,7 @@ function GameScreen({ room, me, imDone, toggleEndVote, leaveRoom }) {
                 <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>You're the Spy</div>
                 <div style={{ color: C.creamDim, fontSize: 13, marginBottom: 16 }}>Category: <b style={{ color: C.cream }}>{cat.label}</b>. Tap items to mark them in or out.</div>
                 <div className="chip-grid" style={{ justifyContent: "center" }}>
-                  {cat.items.map(it => {
+                  {poolItems.map(it => {
                     const mark = marks[it];
                     return (
                       <div key={it} onClick={() => cycleMark(it)} className="press-btn" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 11px", borderRadius: 999, cursor: "pointer", background: mark === "tick" ? "rgba(85,136,201,0.22)" : mark === "cross" ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.22)", border: `1px solid ${mark === "tick" ? C.blue : mark === "cross" ? C.creamDim : C.line}` }}>
@@ -626,6 +689,7 @@ function GameScreen({ room, me, imDone, toggleEndVote, leaveRoom }) {
               </>
             )}
           </Card>
+          {!iAmSpy && <ItemsInPlayPanel room={room} cat={cat} />}
         </div>
 
         <div>
@@ -654,11 +718,15 @@ function VotingScreen({ room, me, castVote, leaveRoom }) {
   const votes = room.votes || {};
   const totalVoted = Object.keys(votes).length;
   const myVote = votes[me.id];
+  const cat = CATEGORIES[room.item.category];
   return (
     <>
       <Eyebrow>Round {room.round} · Voting</Eyebrow>
       <Title>Who's the spy?</Title>
       <Sub>Guess whoever you like — you don't need to agree with the table. {totalVoted}/{room.players.length} have voted. The spy stays hidden until everyone's in.</Sub>
+      <Card style={{ display: "flex", justifyContent: "center", padding: "16px 20px" }}>
+        <WallClock startedAt={room.votingStartedAt} durationSec={VOTE_TIMER_SEC} size={92} />
+      </Card>
       <Card>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
           {room.players.map(p => (
@@ -668,6 +736,7 @@ function VotingScreen({ room, me, castVote, leaveRoom }) {
         </div>
         <div style={{ textAlign: "center", fontSize: 13, color: C.creamDim }}>{totalVoted < room.players.length ? `Waiting on ${room.players.length - totalVoted} more vote${room.players.length - totalVoted !== 1 ? "s" : ""}…` : "Everyone's voted — revealing…"}</div>
       </Card>
+      <ItemsInPlayPanel room={room} cat={cat} />
       <GhostButton onClick={leaveRoom}><LogOut size={15} /> Leave room</GhostButton>
     </>
   );
@@ -677,12 +746,17 @@ function VotingScreen({ room, me, castVote, leaveRoom }) {
 function SpyGuessScreen({ room, me, spySubmitGuess, leaveRoom }) {
   const iAmSpy = room.spyId === me.id;
   const cat = CATEGORIES[room.item.category];
+  const poolItems = room.activeItems && room.activeItems.length ? room.activeItems : cat.items;
   if (!iAmSpy) {
     return (
       <>
         <Eyebrow>Round {room.round} · Majority caught the spy</Eyebrow>
         <Title>The spy gets one guess</Title>
+        <Card style={{ display: "flex", justifyContent: "center", padding: "16px 20px" }}>
+          <WallClock startedAt={room.spyGuessStartedAt} durationSec={SPY_GUESS_TIMER_SEC} size={92} />
+        </Card>
         <Card><Sub>The table found the spy. They now get one shot at naming the secret {cat.label.toLowerCase()} item for a consolation point. Hang tight…</Sub></Card>
+        <ItemsInPlayPanel room={room} cat={cat} />
         <GhostButton onClick={leaveRoom}><LogOut size={15} /> Leave room</GhostButton>
       </>
     );
@@ -691,10 +765,13 @@ function SpyGuessScreen({ room, me, spySubmitGuess, leaveRoom }) {
     <>
       <Eyebrow>Round {room.round} · You were caught</Eyebrow>
       <Title>Last chance — name the item</Title>
-      <Sub>The table caught you. Pick what you think the secret {cat.label.toLowerCase()} item was — get it right for 1 point.</Sub>
+      <Sub>The table caught you. Pick what you think the secret {cat.label.toLowerCase()} item was — get it right for 1 point. You have 60 seconds.</Sub>
+      <Card style={{ display: "flex", justifyContent: "center", padding: "16px 20px" }}>
+        <WallClock startedAt={room.spyGuessStartedAt} durationSec={SPY_GUESS_TIMER_SEC} size={92} />
+      </Card>
       <Card>
         <div className="chip-grid">
-          {cat.items.map(it => (
+          {poolItems.map(it => (
             <div key={it} onClick={() => spySubmitGuess(it)} className="press-btn" style={{ padding: "9px 13px", borderRadius: 999, border: `1px solid ${C.line}`, cursor: "pointer", background: "rgba(0,0,0,0.22)", fontSize: 13 }}>{it}</div>
           ))}
         </div>
