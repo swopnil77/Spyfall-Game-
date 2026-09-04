@@ -1,28 +1,77 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Radio, Eye, ArrowRight, LogOut, Sparkles, Check, X, Bell, Trophy, Loader2 } from "lucide-react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
+
+import {
+  Radio,
+  Eye,
+  ArrowRight,
+  LogOut,
+  Sparkles,
+  Check,
+  X,
+  Bell,
+  Trophy,
+  Loader2,
+  UserX,
+  Clock3,
+} from "lucide-react";
 
 /* =========================================================================
    SUPABASE CONFIG
    ========================================================================= */
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://YOUR-PROJECT-REF.supabase.co";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "YOUR-ANON-PUBLIC-KEY";
-const sbHeaders = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, "Content-Type": "application/json" };
-const CONFIGURED = !SUPABASE_URL.includes("YOUR-PROJECT-REF") && !SUPABASE_ANON_KEY.includes("YOUR-ANON");
+
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://YOUR-PROJECT-REF.supabase.co";
+
+const SUPABASE_ANON_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "YOUR-ANON-PUBLIC-KEY";
+
+const sbHeaders = {
+  apikey: SUPABASE_ANON_KEY,
+  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+  "Content-Type": "application/json",
+};
+
+const CONFIGURED =
+  !SUPABASE_URL.includes("YOUR-PROJECT-REF") &&
+  !SUPABASE_ANON_KEY.includes("YOUR-ANON");
 
 /* =========================================================================
-   DESIGN TOKENS — cream & black, blue as the only accent
+   DESIGN TOKENS
    ========================================================================= */
+
 const C = {
-  ink: "#121110", panel: "#1b1917", panel2: "#232019",
-  cream: "#f3ead6", creamDim: "#c8bd9e",
-  blue: "#5588c9", blueDeep: "#3a6699", blueSoft: "#93b7de",
+  ink: "#121110",
+  panel: "#1b1917",
+  panel2: "#232019",
+  cream: "#f3ead6",
+  creamDim: "#c8bd9e",
+  blue: "#5588c9",
+  blueDeep: "#3a6699",
+  blueSoft: "#93b7de",
   line: "rgba(243,234,214,0.14)",
 };
-const AVATAR_SWATCHES = ["#5588c9", "#93b7de", "#e3d4ad", "#c8bd9e", "#6f93b8", "#f3ead6"];
+
+const AVATAR_SWATCHES = [
+  "#5588c9",
+  "#93b7de",
+  "#e3d4ad",
+  "#c8bd9e",
+  "#6f93b8",
+  "#f3ead6",
+];
+
 const serif = "'Georgia','Iowan Old Style','Times New Roman',serif";
 const sans = "'Inter',-apple-system,BlinkMacSystemFont,sans-serif";
+
 const OPEN_WINDOW_SEC = 120;
 const VOTE_TIMER_SEC = 60;
 const SPY_GUESS_TIMER_SEC = 60;
@@ -30,271 +79,2376 @@ const SPY_GUESS_TIMER_SEC = 60;
 /* =========================================================================
    GAME DATA
    ========================================================================= */
+
 const CATEGORIES = {
-  movies: { label: "Movies", icon: "🎬", items: ["Titanic","Inception","Avatar","Parasite","The Godfather","Jurassic Park","Interstellar","The Dark Knight","Frozen","Avengers: Endgame","La La Land","Coco","Spirited Away","Whiplash","Joker","The Matrix","Forrest Gump","Gladiator","The Lion King","Toy Story","Jerry Maguire","The Shawshank Redemption","Pulp Fiction","Fight Club","The Silence of the Lambs","Schindler's List","Saving Private Ryan","The Green Mile","Se7en","The Prestige","Django Unchained","Inglourious Basterds","The Departed","No Country for Old Men","The Social Network","Shutter Island"] },
-  tvshows: { label: "TV Shows", icon: "📺", items: ["Friends","Breaking Bad","Game of Thrones","The Office","Stranger Things","Money Heist","Sherlock","The Crown","Dark","Chernobyl","Better Call Saul","The Simpsons","Squid Game","The Mandalorian","Peaky Blinders","Rick and Morty","The Witcher","Loki","House of the Dragon","Wednesday","Prison Break","Narcos","Suits","Ozark","The Boys","You","Ted Lasso","Succession","Fargo","True Detective","Vikings","The Umbrella Academy","Cobra Kai","Emily in Paris","Bridgerton","Outer Banks"] },
-  celebrities: { label: "Actors & Singers", icon: "🌟", items: ["Shah Rukh Khan","Taylor Swift","Dwayne Johnson","Priyanka Chopra","Beyoncé","Tom Cruise","Rihanna","Leonardo DiCaprio","Emma Watson","Jungkook","Zendaya","Robert Downey Jr.","Selena Gomez","Salman Khan","Deepika Padukone","Keanu Reeves","Billie Eilish","Chris Hemsworth","Scarlett Johansson","Ed Sheeran","Ariana Grande","Justin Bieber","Tom Holland","Dua Lipa","Bruno Mars","Adele","Brad Pitt","Angelina Jolie","Hrithik Roshan","Amitabh Bachchan","Alia Bhatt","Michael Jackson","Madonna","Freddie Mercury","Lady Gaga","Elvis Presley"] },
-  sportsStars: { label: "Sports Stars", icon: "🏅", items: ["Cristiano Ronaldo","Lionel Messi","Virat Kohli","Serena Williams","LeBron James","Neymar","Usain Bolt","Roger Federer","Kylian Mbappé","Novak Djokovic","Sachin Tendulkar","Michael Jordan","Rafael Nadal","Tom Brady","Simone Biles","Mike Tyson","Kobe Bryant","Muhammad Ali","Michael Phelps","MS Dhoni","Neeraj Chopra","David Beckham","Shane Warne","Wayne Rooney","Zinedine Zidane","Ronaldinho","Pelé","Diego Maradona","Stephen Curry","Shaquille O'Neal","Andre Agassi","Venus Williams","Yuvraj Singh","Rohit Sharma","Babar Azam","Saina Nehwal"] },
-  famousPeople: { label: "Famous People", icon: "🧠", items: ["Elon Musk","Kim Kardashian","Bill Gates","Mark Zuckerberg","Jeff Bezos","Oprah Winfrey","Barack Obama","Mahatma Gandhi","Albert Einstein","Steve Jobs","Warren Buffett","Malala Yousafzai","Nelson Mandela","Martin Luther King Jr.","Marie Curie","Dalai Lama","Queen Elizabeth II","Stephen Hawking","Pope Francis","Vladimir Putin","Isaac Newton","Charles Darwin","Leonardo da Vinci","Nikola Tesla","Walt Disney","Henry Ford","Thomas Edison","Rosa Parks","Abraham Lincoln","Winston Churchill","Confucius","Aristotle","Plato","J.K. Rowling","Jack Ma","Ratan Tata"] },
-  locations: { label: "Locations", icon: "📍", items: ["Airplane","Bank","Beach","Casino","Cathedral","Circus Tent","Corporate Party","Crusader Army","Embassy","Hospital","Hotel","Military Base","Movie Studio","Ocean Liner","Passenger Train","Polar Station","Police Station","Restaurant","School","Service Station","Space Station","Submarine","Supermarket","Theater","Amusement Park","Art Museum","Battleship","Broadcast Center","Cargo Ship","Day Spa","Ice Hockey Stadium","Jail","Night Club","Pirate Ship","University","Zoo"] },
-  politicians: { label: "Nepal Politicians", icon: "🏛️", items: ["KP Sharma Oli","Pushpa Kamal Dahal","Sher Bahadur Deuba","Madhav Kumar Nepal","Baburam Bhattarai","Rabi Lamichhane","Bidya Devi Bhandari","Ram Chandra Poudel","Jhala Nath Khanal","Upendra Yadav","Bamdev Gautam","Gagan Thapa","Bishnu Prasad Paudel","Kamal Thapa","Mahantha Thakur","Rajendra Lingden","Narayan Kaji Shrestha","Hisila Yami","Renu Dahal","Balen Shah","Harka Sampang","Mahesh Basnet","Prakash Man Singh","Yubaraj Khatiwada","Sujata Koirala","Krishna Bahadur Mahara","Subas Chandra Nembang","Onsari Gharti Magar","Ram Baran Yadav","Sushil Koirala","Bijay Kumar Gachhadar","Ishwor Pokhrel","Pampha Bhusal","Amik Sherchan","Ram Sahay Prasad Yadav","Bimalendra Nidhi"] },
-  districts: { label: "Nepal Districts", icon: "🗺️", items: ["Kathmandu","Lalitpur","Bhaktapur","Kaski","Chitwan","Morang","Sunsari","Jhapa","Rupandehi","Kailali","Kanchanpur","Banke","Bardiya","Dang","Palpa","Gorkha","Lamjung","Tanahun","Syangja","Baglung","Myagdi","Mustang","Manang","Rasuwa","Nuwakot","Dhading","Makwanpur","Sindhuli","Ramechhap","Dolakha","Solukhumbu","Okhaldhunga","Khotang","Bhojpur","Dhankuta","Ilam","Panchthar","Taplejung","Terhathum","Udayapur"] },
-  countries: { label: "Countries", icon: "🌍", items: ["Nepal","India","China","USA","UK","France","Germany","Japan","South Korea","Australia","Brazil","Canada","Russia","Italy","Spain","Mexico","Egypt","South Africa","Thailand","Vietnam","Indonesia","Turkey","Saudi Arabia","UAE","Bhutan","Bangladesh","Sri Lanka","Pakistan","Argentina","Switzerland","Nigeria","Kenya","Ethiopia","Ghana","Morocco","Algeria","Iran","Iraq","Israel","Jordan","Qatar","Kuwait","Oman","Singapore","Malaysia","Philippines","Myanmar","Cambodia","Mongolia","Kazakhstan","Ukraine","Poland","Netherlands","Sweden","Norway","Denmark","Portugal","Greece","New Zealand","Chile"] },
-  anime: { label: "Anime Characters", icon: "⚔️", items: ["Naruto Uzumaki","Monkey D. Luffy","Goku","Levi Ackerman","Light Yagami","Eren Yeager","Itachi Uchiha","Saitama","Edward Elric","Tanjiro Kamado","Nezuko Kamado","Sasuke Uchiha","L Lawliet","Vegeta","Ichigo Kurosaki","Gon Freecss","Killua Zoldyck","Mikasa Ackerman","Rem","Izuku Midoriya","All Might","Sailor Moon","Spike Spiegel","Kakashi Hatake","Zoro Roronoa","Natsu Dragneel","Erza Scarlet","Asta","Yuji Itadori","Satoru Gojo","Todoroki Shoto","Bakugo Katsuki","Yusuke Urameshi","Inuyasha","Rin Okumura","Rukia Kuchiki"] },
-  food: { label: "Food", icon: "🍕", items: ["Pizza","Burger","Sushi","Momo","Pasta","Tacos","Ramen","Biryani","Pancakes","Dumplings","Croissant","Curry","Sandwich","Steak","Waffles","Fried Rice","Noodles","Ice Cream","Chocolate","Samosa","Paneer Tikka","Dal Bhat","Chowmein","Pav Bhaji","Sel Roti","Gundruk","Dhido","Yomari","Thukpa","Sekuwa","Chatamari","Juju Dhau","Butter Chicken","Chole Bhature","Dosa","Idli","Vada Pav","Gulab Jamun","Jalebi","Rasgulla","Hot Dog","French Fries","Nachos","Fried Chicken","Grilled Cheese","Lasagna","Spaghetti","Popcorn","Donut","Bacon","Omelette","Hummus","Kebab","Burrito","Pretzel"] },  hindiMovies: { label: "Hindi Movies (1991–2017)", icon: "🎥", items: ["Hum Aapke Hain Koun","Dilwale Dulhania Le Jayenge","Kuch Kuch Hota Hai","Lagaan","Kabhi Khushi Kabhie Gham","Devdas","Koi Mil Gaya","Veer-Zaara","Rang De Basanti","Lage Raho Munna Bhai","Om Shanti Om","Jab We Met","3 Idiots","My Name Is Khan","Zindagi Na Milegi Dobara","Barfi!","Kai Po Che","Queen","PK","Bajrangi Bhaijaan","Dangal","Sultan","Hindi Medium","Raees","Saajan","Lamhe","Khalnayak","Baazigar","Darr","Hum Hain Rahi Pyar Ke","Andaz Apna Apna","Mohra","1942: A Love Story","Rangeela","Karan Arjun","Coolie No. 1","Raja Hindustani","Border","Dil To Pagal Hai","Pardes","Kaho Naa... Pyaar Hai","Mohabbatein","Refugee","Dhadkan","Gadar: Ek Prem Katha","Dil Chahta Hai","Kal Ho Naa Ho","Munna Bhai M.B.B.S.","Main Hoon Na","Dhoom","Hum Tum","Swades","Black","Bunty Aur Babli","Salaam Namaste","Parineeta","Dhoom 2","Krrish","Fanaa","Chak De! India","Taare Zameen Par","Welcome","Race","Jodhaa Akbar","Ghajini","Kaminey","Love Aaj Kal","Dabangg","Delhi Belly","Rockstar","Ra.One","Agneepath","Kahaani","Ek Tha Tiger","Jab Tak Hai Jaan","Yeh Jawaani Hai Deewani","Chennai Express","Goliyon Ki Raasleela Ram-Leela","Highway","2 States","Kick","Happy New Year","Tanu Weds Manu Returns","Piku","Bajirao Mastani","Dilwale","ABCD 2","Airlift","Neerja","Kapoor & Sons","Ae Dil Hai Mushkil","M.S. Dhoni: The Untold Story","Fan","Jolly LLB 2","Tiger Zinda Hai","Badrinath Ki Dulhania","Bareilly Ki Barfi","Newton","Secret Superstar","Golmaal Again"] },
-  animals: { label: "Animals", icon: "🐾", items: ["Lion","Tiger","Elephant","Giraffe","Zebra","Kangaroo","Panda","Koala","Cheetah","Wolf","Fox","Bear","Gorilla","Chimpanzee","Rhino","Hippopotamus","Crocodile","Eagle","Owl","Penguin","Dolphin","Whale","Shark","Octopus","Snake","Leopard","Hyena","Camel","Horse","Deer","Peacock","Parrot","Squirrel","Rabbit","Buffalo"] },
-  fruits: { label: "Fruits", icon: "🍎", items: ["Apple","Banana","Mango","Orange","Grapes","Strawberry","Pineapple","Watermelon","Papaya","Guava","Kiwi","Peach","Pear","Cherry","Blueberry","Lychee","Pomegranate","Coconut","Lemon","Fig","Plum","Apricot","Dragon Fruit","Jackfruit","Custard Apple","Avocado","Blackberry","Raspberry","Cranberry","Cantaloupe","Honeydew Melon","Passion Fruit","Star Fruit","Mulberry","Persimmon","Tangerine","Grapefruit","Rambutan","Mangosteen","Nectarine"] },
-  indianActors: { label: "Indian Actors & Actresses", icon: "🎭", items: ["Shah Rukh Khan","Amitabh Bachchan","Aamir Khan","Salman Khan","Hrithik Roshan","Akshay Kumar","Ranbir Kapoor","Ranveer Singh","Rajinikanth","Kamal Haasan","Prabhas","Allu Arjun","Yash","Vijay","Mahesh Babu","Irrfan Khan","Naseeruddin Shah","Deepika Padukone","Priyanka Chopra","Alia Bhatt","Kareena Kapoor","Katrina Kaif","Aishwarya Rai","Vidya Balan","Madhuri Dixit","Sridevi","Rekha","Nayanthara","Samantha Ruth Prabhu","Kajol","Sushant Singh Rajput","Rajkummar Rao","Kartik Aaryan","Ayushmann Khurrana","Vicky Kaushal","Nawazuddin Siddiqui","Pankaj Tripathi","Manoj Bajpayee","Tabu","Taapsee Pannu","Kangana Ranaut","Konkona Sen Sharma","Bhumi Pednekar"] },
+  movies: {
+    label: "Movies",
+    icon: "🎬",
+    items: [
+      "Titanic",
+      "Inception",
+      "Avatar",
+      "Parasite",
+      "The Godfather",
+      "Jurassic Park",
+      "Interstellar",
+      "The Dark Knight",
+      "Frozen",
+      "Avengers: Endgame",
+      "La La Land",
+      "Coco",
+      "Spirited Away",
+      "Whiplash",
+      "Joker",
+      "The Matrix",
+      "Forrest Gump",
+      "Gladiator",
+      "The Lion King",
+      "Toy Story",
+      "Jerry Maguire",
+      "The Shawshank Redemption",
+      "Pulp Fiction",
+      "Fight Club",
+      "The Silence of the Lambs",
+      "Schindler's List",
+      "Saving Private Ryan",
+      "The Green Mile",
+      "Se7en",
+      "The Prestige",
+      "Django Unchained",
+      "Inglourious Basterds",
+      "The Departed",
+      "No Country for Old Men",
+      "The Social Network",
+      "Shutter Island",
+    ],
+  },
+
+  tvshows: {
+    label: "TV Shows",
+    icon: "📺",
+    items: [
+      "Friends",
+      "Breaking Bad",
+      "Game of Thrones",
+      "The Office",
+      "Stranger Things",
+      "Money Heist",
+      "Sherlock",
+      "The Crown",
+      "Dark",
+      "Chernobyl",
+      "Better Call Saul",
+      "The Simpsons",
+      "Squid Game",
+      "The Mandalorian",
+      "Peaky Blinders",
+      "Rick and Morty",
+      "The Witcher",
+      "Loki",
+      "House of the Dragon",
+      "Wednesday",
+      "Prison Break",
+      "Narcos",
+      "Suits",
+      "Ozark",
+      "The Boys",
+      "You",
+      "Ted Lasso",
+      "Succession",
+      "Fargo",
+      "True Detective",
+      "Vikings",
+      "The Umbrella Academy",
+      "Cobra Kai",
+      "Emily in Paris",
+      "Bridgerton",
+      "Outer Banks",
+    ],
+  },
+
+  celebrities: {
+    label: "Actors & Singers",
+    icon: "🌟",
+    items: [
+      "Shah Rukh Khan",
+      "Taylor Swift",
+      "Dwayne Johnson",
+      "Priyanka Chopra",
+      "Beyoncé",
+      "Tom Cruise",
+      "Rihanna",
+      "Leonardo DiCaprio",
+      "Emma Watson",
+      "Jungkook",
+      "Zendaya",
+      "Robert Downey Jr.",
+      "Selena Gomez",
+      "Salman Khan",
+      "Deepika Padukone",
+      "Keanu Reeves",
+      "Billie Eilish",
+      "Chris Hemsworth",
+      "Scarlett Johansson",
+      "Ed Sheeran",
+      "Ariana Grande",
+      "Justin Bieber",
+      "Tom Holland",
+      "Dua Lipa",
+      "Bruno Mars",
+      "Adele",
+      "Brad Pitt",
+      "Angelina Jolie",
+      "Hrithik Roshan",
+      "Amitabh Bachchan",
+      "Alia Bhatt",
+      "Michael Jackson",
+      "Madonna",
+      "Freddie Mercury",
+      "Lady Gaga",
+      "Elvis Presley",
+    ],
+  },
+
+  sportsStars: {
+    label: "Sports Stars",
+    icon: "🏅",
+    items: [
+      "Cristiano Ronaldo",
+      "Lionel Messi",
+      "Virat Kohli",
+      "Serena Williams",
+      "LeBron James",
+      "Neymar",
+      "Usain Bolt",
+      "Roger Federer",
+      "Kylian Mbappé",
+      "Novak Djokovic",
+      "Sachin Tendulkar",
+      "Michael Jordan",
+      "Rafael Nadal",
+      "Tom Brady",
+      "Simone Biles",
+      "Mike Tyson",
+      "Kobe Bryant",
+      "Muhammad Ali",
+      "Michael Phelps",
+      "MS Dhoni",
+      "Neeraj Chopra",
+      "David Beckham",
+      "Shane Warne",
+      "Wayne Rooney",
+      "Zinedine Zidane",
+      "Ronaldinho",
+      "Pelé",
+      "Diego Maradona",
+      "Stephen Curry",
+      "Shaquille O'Neal",
+      "Andre Agassi",
+      "Venus Williams",
+      "Yuvraj Singh",
+      "Rohit Sharma",
+      "Babar Azam",
+      "Saina Nehwal",
+    ],
+  },
+
+  famousPeople: {
+    label: "Famous People",
+    icon: "🧠",
+    items: [
+      "Elon Musk",
+      "Kim Kardashian",
+      "Bill Gates",
+      "Mark Zuckerberg",
+      "Jeff Bezos",
+      "Oprah Winfrey",
+      "Barack Obama",
+      "Mahatma Gandhi",
+      "Albert Einstein",
+      "Steve Jobs",
+      "Warren Buffett",
+      "Malala Yousafzai",
+      "Nelson Mandela",
+      "Martin Luther King Jr.",
+      "Marie Curie",
+      "Dalai Lama",
+      "Queen Elizabeth II",
+      "Stephen Hawking",
+      "Pope Francis",
+      "Vladimir Putin",
+      "Isaac Newton",
+      "Charles Darwin",
+      "Leonardo da Vinci",
+      "Nikola Tesla",
+      "Walt Disney",
+      "Henry Ford",
+      "Thomas Edison",
+      "Rosa Parks",
+      "Abraham Lincoln",
+      "Winston Churchill",
+      "Confucius",
+      "Aristotle",
+      "Plato",
+      "J.K. Rowling",
+      "Jack Ma",
+      "Ratan Tata",
+    ],
+  },
+
+  locations: {
+    label: "Locations",
+    icon: "📍",
+    items: [
+      "Airplane",
+      "Bank",
+      "Beach",
+      "Casino",
+      "Cathedral",
+      "Circus Tent",
+      "Corporate Party",
+      "Crusader Army",
+      "Embassy",
+      "Hospital",
+      "Hotel",
+      "Military Base",
+      "Movie Studio",
+      "Ocean Liner",
+      "Passenger Train",
+      "Polar Station",
+      "Police Station",
+      "Restaurant",
+      "School",
+      "Service Station",
+      "Space Station",
+      "Submarine",
+      "Supermarket",
+      "Theater",
+      "Amusement Park",
+      "Art Museum",
+      "Battleship",
+      "Broadcast Center",
+      "Cargo Ship",
+      "Day Spa",
+      "Ice Hockey Stadium",
+      "Jail",
+      "Night Club",
+      "Pirate Ship",
+      "University",
+      "Zoo",
+    ],
+  },
+
+  politicians: {
+    label: "Nepal Politicians",
+    icon: "🏛️",
+    items: [
+      "KP Sharma Oli",
+      "Pushpa Kamal Dahal",
+      "Sher Bahadur Deuba",
+      "Madhav Kumar Nepal",
+      "Baburam Bhattarai",
+      "Rabi Lamichhane",
+      "Bidya Devi Bhandari",
+      "Ram Chandra Poudel",
+      "Jhala Nath Khanal",
+      "Upendra Yadav",
+      "Bamdev Gautam",
+      "Gagan Thapa",
+      "Bishnu Prasad Paudel",
+      "Kamal Thapa",
+      "Mahantha Thakur",
+      "Rajendra Lingden",
+      "Narayan Kaji Shrestha",
+      "Hisila Yami",
+      "Renu Dahal",
+      "Balen Shah",
+      "Harka Sampang",
+      "Mahesh Basnet",
+      "Prakash Man Singh",
+      "Yubaraj Khatiwada",
+      "Sujata Koirala",
+      "Krishna Bahadur Mahara",
+      "Subas Chandra Nembang",
+      "Onsari Gharti Magar",
+      "Ram Baran Yadav",
+      "Sushil Koirala",
+      "Bijay Kumar Gachhadar",
+      "Ishwor Pokhrel",
+      "Pampha Bhusal",
+      "Amik Sherchan",
+      "Ram Sahay Prasad Yadav",
+      "Bimalendra Nidhi",
+    ],
+  },
+
+  districts: {
+    label: "Nepal Districts",
+    icon: "🗺️",
+    items: [
+      "Kathmandu",
+      "Lalitpur",
+      "Bhaktapur",
+      "Kaski",
+      "Chitwan",
+      "Morang",
+      "Sunsari",
+      "Jhapa",
+      "Rupandehi",
+      "Kailali",
+      "Kanchanpur",
+      "Banke",
+      "Bardiya",
+      "Dang",
+      "Palpa",
+      "Gorkha",
+      "Lamjung",
+      "Tanahun",
+      "Syangja",
+      "Baglung",
+      "Myagdi",
+      "Mustang",
+      "Manang",
+      "Rasuwa",
+      "Nuwakot",
+      "Dhading",
+      "Makwanpur",
+      "Sindhuli",
+      "Ramechhap",
+      "Dolakha",
+      "Solukhumbu",
+      "Okhaldhunga",
+      "Khotang",
+      "Bhojpur",
+      "Dhankuta",
+      "Ilam",
+      "Panchthar",
+      "Taplejung",
+      "Terhathum",
+      "Udayapur",
+    ],
+  },
+
+  countries: {
+    label: "Countries",
+    icon: "🌍",
+    items: [
+      "Nepal",
+      "India",
+      "China",
+      "USA",
+      "UK",
+      "France",
+      "Germany",
+      "Japan",
+      "South Korea",
+      "Australia",
+      "Brazil",
+      "Canada",
+      "Russia",
+      "Italy",
+      "Spain",
+      "Mexico",
+      "Egypt",
+      "South Africa",
+      "Thailand",
+      "Vietnam",
+      "Indonesia",
+      "Turkey",
+      "Saudi Arabia",
+      "UAE",
+      "Bhutan",
+      "Bangladesh",
+      "Sri Lanka",
+      "Pakistan",
+      "Argentina",
+      "Switzerland",
+      "Nigeria",
+      "Kenya",
+      "Ethiopia",
+      "Ghana",
+      "Morocco",
+      "Algeria",
+      "Iran",
+      "Iraq",
+      "Israel",
+      "Jordan",
+      "Qatar",
+      "Kuwait",
+      "Oman",
+      "Singapore",
+      "Malaysia",
+      "Philippines",
+      "Myanmar",
+      "Cambodia",
+      "Mongolia",
+      "Kazakhstan",
+      "Ukraine",
+      "Poland",
+      "Netherlands",
+      "Sweden",
+      "Norway",
+      "Denmark",
+      "Portugal",
+      "Greece",
+      "New Zealand",
+      "Chile",
+    ],
+  },
+
+  anime: {
+    label: "Anime Characters",
+    icon: "⚔️",
+    items: [
+      "Naruto Uzumaki",
+      "Monkey D. Luffy",
+      "Goku",
+      "Levi Ackerman",
+      "Light Yagami",
+      "Eren Yeager",
+      "Itachi Uchiha",
+      "Saitama",
+      "Edward Elric",
+      "Tanjiro Kamado",
+      "Nezuko Kamado",
+      "Sasuke Uchiha",
+      "L Lawliet",
+      "Vegeta",
+      "Ichigo Kurosaki",
+      "Gon Freecss",
+      "Killua Zoldyck",
+      "Mikasa Ackerman",
+      "Rem",
+      "Izuku Midoriya",
+      "All Might",
+      "Sailor Moon",
+      "Spike Spiegel",
+      "Kakashi Hatake",
+      "Zoro Roronoa",
+      "Natsu Dragneel",
+      "Erza Scarlet",
+      "Asta",
+      "Yuji Itadori",
+      "Satoru Gojo",
+      "Todoroki Shoto",
+      "Bakugo Katsuki",
+      "Yusuke Urameshi",
+      "Inuyasha",
+      "Rin Okumura",
+      "Rukia Kuchiki",
+    ],
+  },
+
+  food: {
+    label: "Food",
+    icon: "🍕",
+    items: [
+      "Pizza",
+      "Burger",
+      "Sushi",
+      "Momo",
+      "Pasta",
+      "Tacos",
+      "Ramen",
+      "Biryani",
+      "Pancakes",
+      "Dumplings",
+      "Croissant",
+      "Curry",
+      "Sandwich",
+      "Steak",
+      "Waffles",
+      "Fried Rice",
+      "Noodles",
+      "Ice Cream",
+      "Chocolate",
+      "Samosa",
+      "Paneer Tikka",
+      "Dal Bhat",
+      "Chowmein",
+      "Pav Bhaji",
+      "Sel Roti",
+      "Gundruk",
+      "Dhido",
+      "Yomari",
+      "Thukpa",
+      "Sekuwa",
+      "Chatamari",
+      "Juju Dhau",
+      "Butter Chicken",
+      "Chole Bhature",
+      "Dosa",
+      "Idli",
+      "Vada Pav",
+      "Gulab Jamun",
+      "Jalebi",
+      "Rasgulla",
+      "Hot Dog",
+      "French Fries",
+      "Nachos",
+      "Fried Chicken",
+      "Grilled Cheese",
+      "Lasagna",
+      "Spaghetti",
+      "Popcorn",
+      "Donut",
+      "Bacon",
+      "Omelette",
+      "Hummus",
+      "Kebab",
+      "Burrito",
+      "Pretzel",
+    ],
+  },
+
+  hindiMovies: {
+    label: "Hindi Movies (1991–2017)",
+    icon: "🎥",
+    items: [
+      "Hum Aapke Hain Koun",
+      "Dilwale Dulhania Le Jayenge",
+      "Kuch Kuch Hota Hai",
+      "Lagaan",
+      "Kabhi Khushi Kabhie Gham",
+      "Devdas",
+      "Koi Mil Gaya",
+      "Veer-Zaara",
+      "Rang De Basanti",
+      "Lage Raho Munna Bhai",
+      "Om Shanti Om",
+      "Jab We Met",
+      "3 Idiots",
+      "My Name Is Khan",
+      "Zindagi Na Milegi Dobara",
+      "Barfi!",
+      "Kai Po Che",
+      "Queen",
+      "PK",
+      "Bajrangi Bhaijaan",
+      "Dangal",
+      "Sultan",
+      "Hindi Medium",
+      "Raees",
+      "Saajan",
+      "Lamhe",
+      "Khalnayak",
+      "Baazigar",
+      "Darr",
+      "Hum Hain Rahi Pyar Ke",
+      "Andaz Apna Apna",
+      "Mohra",
+      "1942: A Love Story",
+      "Rangeela",
+      "Karan Arjun",
+      "Coolie No. 1",
+      "Raja Hindustani",
+      "Border",
+      "Dil To Pagal Hai",
+      "Pardes",
+      "Kaho Naa... Pyaar Hai",
+      "Mohabbatein",
+      "Refugee",
+      "Dhadkan",
+      "Gadar: Ek Prem Katha",
+      "Dil Chahta Hai",
+      "Kal Ho Naa Ho",
+      "Munna Bhai M.B.B.S.",
+      "Main Hoon Na",
+      "Dhoom",
+      "Hum Tum",
+      "Swades",
+      "Black",
+      "Bunty Aur Babli",
+      "Salaam Namaste",
+      "Parineeta",
+      "Dhoom 2",
+      "Krrish",
+      "Fanaa",
+      "Chak De! India",
+      "Taare Zameen Par",
+      "Welcome",
+      "Race",
+      "Jodhaa Akbar",
+      "Ghajini",
+      "Kaminey",
+      "Love Aaj Kal",
+      "Dabangg",
+      "Delhi Belly",
+      "Rockstar",
+      "Ra.One",
+      "Agneepath",
+      "Kahaani",
+      "Ek Tha Tiger",
+      "Jab Tak Hai Jaan",
+      "Yeh Jawaani Hai Deewani",
+      "Chennai Express",
+      "Goliyon Ki Raasleela Ram-Leela",
+      "Highway",
+      "2 States",
+      "Kick",
+      "Happy New Year",
+      "Tanu Weds Manu Returns",
+      "Piku",
+      "Bajirao Mastani",
+      "Dilwale",
+      "ABCD 2",
+      "Airlift",
+      "Neerja",
+      "Kapoor & Sons",
+      "Ae Dil Hai Mushkil",
+      "M.S. Dhoni: The Untold Story",
+      "Fan",
+      "Jolly LLB 2",
+      "Tiger Zinda Hai",
+      "Badrinath Ki Dulhania",
+      "Bareilly Ki Barfi",
+      "Newton",
+      "Secret Superstar",
+      "Golmaal Again",
+    ],
+  },
+
+  animals: {
+    label: "Animals",
+    icon: "🐾",
+    items: [
+      "Lion",
+      "Tiger",
+      "Elephant",
+      "Giraffe",
+      "Zebra",
+      "Kangaroo",
+      "Panda",
+      "Koala",
+      "Cheetah",
+      "Wolf",
+      "Fox",
+      "Bear",
+      "Gorilla",
+      "Chimpanzee",
+      "Rhino",
+      "Hippopotamus",
+      "Crocodile",
+      "Eagle",
+      "Owl",
+      "Penguin",
+      "Dolphin",
+      "Whale",
+      "Shark",
+      "Octopus",
+      "Snake",
+      "Leopard",
+      "Hyena",
+      "Camel",
+      "Horse",
+      "Deer",
+      "Peacock",
+      "Parrot",
+      "Squirrel",
+      "Rabbit",
+      "Buffalo",
+    ],
+  },
+
+  fruits: {
+    label: "Fruits",
+    icon: "🍎",
+    items: [
+      "Apple",
+      "Banana",
+      "Mango",
+      "Orange",
+      "Grapes",
+      "Strawberry",
+      "Pineapple",
+      "Watermelon",
+      "Papaya",
+      "Guava",
+      "Kiwi",
+      "Peach",
+      "Pear",
+      "Cherry",
+      "Blueberry",
+      "Lychee",
+      "Pomegranate",
+      "Coconut",
+      "Lemon",
+      "Fig",
+      "Plum",
+      "Apricot",
+      "Dragon Fruit",
+      "Jackfruit",
+      "Custard Apple",
+      "Avocado",
+      "Blackberry",
+      "Raspberry",
+      "Cranberry",
+      "Cantaloupe",
+      "Honeydew Melon",
+      "Passion Fruit",
+      "Star Fruit",
+      "Mulberry",
+      "Persimmon",
+      "Tangerine",
+      "Grapefruit",
+      "Rambutan",
+      "Mangosteen",
+      "Nectarine",
+    ],
+  },
+
+  indianActors: {
+    label: "Indian Actors & Actresses",
+    icon: "🎭",
+    items: [
+      "Shah Rukh Khan",
+      "Amitabh Bachchan",
+      "Aamir Khan",
+      "Salman Khan",
+      "Hrithik Roshan",
+      "Akshay Kumar",
+      "Ranbir Kapoor",
+      "Ranveer Singh",
+      "Rajinikanth",
+      "Kamal Haasan",
+      "Prabhas",
+      "Allu Arjun",
+      "Yash",
+      "Vijay",
+      "Mahesh Babu",
+      "Irrfan Khan",
+      "Naseeruddin Shah",
+      "Deepika Padukone",
+      "Priyanka Chopra",
+      "Alia Bhatt",
+      "Kareena Kapoor",
+      "Katrina Kaif",
+      "Aishwarya Rai",
+      "Vidya Balan",
+      "Madhuri Dixit",
+      "Sridevi",
+      "Rekha",
+      "Nayanthara",
+      "Samantha Ruth Prabhu",
+      "Kajol",
+      "Sushant Singh Rajput",
+      "Rajkummar Rao",
+      "Kartik Aaryan",
+      "Ayushmann Khurrana",
+      "Vicky Kaushal",
+      "Nawazuddin Siddiqui",
+      "Pankaj Tripathi",
+      "Manoj Bajpayee",
+      "Tabu",
+      "Taapsee Pannu",
+      "Kangana Ranaut",
+      "Konkona Sen Sharma",
+      "Bhumi Pednekar",
+    ],
+  },
 };
+
 const CAT_KEYS = Object.keys(CATEGORIES);
 
 /* =========================================================================
    UTILITIES
    ========================================================================= */
-const uid = (n = 10) => { const c = "abcdefghijklmnopqrstuvwxyz0123456789"; let s = ""; for (let i=0;i<n;i++) s += c[Math.floor(Math.random()*c.length)]; return s; };
-const roomCode = () => { const c = "ABCDEFGHJKLMNPQRSTUVWXYZ"; let s = ""; for (let i=0;i<4;i++) s += c[Math.floor(Math.random()*c.length)]; return s; };
-const hashColor = (str) => { let h=0; for (let i=0;i<str.length;i++) h = str.charCodeAt(i) + ((h<<5)-h); return AVATAR_SWATCHES[Math.abs(h) % AVATAR_SWATCHES.length]; };
-const initials = (name) => (name||"?").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
-const pick = (arr) => arr[Math.floor(Math.random()*arr.length)];
-const shuffleArr = (arr) => { const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+const uid = (n = 10) => {
+  const c = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let s = "";
+
+  for (let i = 0; i < n; i++) {
+    s += c[Math.floor(Math.random() * c.length)];
+  }
+
+  return s;
+};
+
+const roomCode = () => {
+  const c = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  let s = "";
+
+  for (let i = 0; i < 4; i++) {
+    s += c[Math.floor(Math.random() * c.length)];
+  }
+
+  return s;
+};
+
+const hashColor = (str) => {
+  let h = 0;
+
+  for (let i = 0; i < str.length; i++) {
+    h = str.charCodeAt(i) + ((h << 5) - h);
+  }
+
+  return AVATAR_SWATCHES[
+    Math.abs(h) % AVATAR_SWATCHES.length
+  ];
+};
+
+const initials = (name) =>
+  (name || "?")
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+const pick = (arr) =>
+  arr[Math.floor(Math.random() * arr.length)];
+
+const shuffleArr = (arr) => {
+  const a = [...arr];
+
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+
+  return a;
+};
+
 const ACTIVE_POOL_SIZE = 30;
 
 function pickNextPair(players, prevAsker, prevTarget) {
-  const ids = players.map(p => p.id);
-  if (ids.length < 2) return { asker: ids[0] || null, target: null };
-  let askerPool = ids.filter(id => id !== prevAsker);
-  if (askerPool.length === 0) askerPool = ids;
+  const ids = players.map((p) => p.id);
+
+  if (ids.length < 2) {
+    return {
+      asker: ids[0] || null,
+      target: null,
+    };
+  }
+
+  let askerPool = ids.filter(
+    (id) => id !== prevAsker
+  );
+
+  if (askerPool.length === 0) {
+    askerPool = ids;
+  }
+
   const asker = pick(askerPool);
-  let targetPool = ids.filter(id => id !== asker && id !== prevTarget);
-  if (targetPool.length === 0) targetPool = ids.filter(id => id !== asker);
+
+  let targetPool = ids.filter(
+    (id) => id !== asker && id !== prevTarget
+  );
+
+  if (targetPool.length === 0) {
+    targetPool = ids.filter((id) => id !== asker);
+  }
+
   const target = pick(targetPool);
-  return { asker, target };
+
+  return {
+    asker,
+    target,
+  };
 }
 
 /* =========================================================================
    SUPABASE REST HELPERS
    ========================================================================= */
+
 const roomToRow = (r) => ({
-  code: r.code, host_id: r.hostId, players: r.players, categories: r.categories, status: r.status,
-  item: r.item, spy_id: r.spyId, scores: r.scores, round: r.round,
-  round_duration_sec: r.roundDurationSec, round_started_at: r.roundStartedAt ? new Date(r.roundStartedAt).toISOString() : null,
-  current_asker: r.currentAsker, current_target: r.currentTarget,
-  votes: r.votes, end_votes: r.endVotes, voting_resolved: r.votingResolved,
-  spy_guess: r.spyGuess, spy_guess_correct: r.spyGuessCorrect,
-  active_items: r.activeItems, voting_started_at: r.votingStartedAt ? new Date(r.votingStartedAt).toISOString() : null,
-  spy_guess_started_at: r.spyGuessStartedAt ? new Date(r.spyGuessStartedAt).toISOString() : null,
+  code: r.code,
+  host_id: r.hostId,
+  players: r.players,
+  categories: r.categories,
+  status: r.status,
+  item: r.item,
+  spy_id: r.spyId,
+  scores: r.scores,
+  round: r.round,
+  round_duration_sec: r.roundDurationSec,
+  round_started_at: r.roundStartedAt
+    ? new Date(r.roundStartedAt).toISOString()
+    : null,
+  current_asker: r.currentAsker,
+  current_target: r.currentTarget,
+  votes: r.votes,
+  end_votes: r.endVotes,
+  voting_resolved: r.votingResolved,
+  spy_guess: r.spyGuess,
+  spy_guess_correct: r.spyGuessCorrect,
+  active_items: r.activeItems,
+  voting_started_at: r.votingStartedAt
+    ? new Date(r.votingStartedAt).toISOString()
+    : null,
+  spy_guess_started_at: r.spyGuessStartedAt
+    ? new Date(r.spyGuessStartedAt).toISOString()
+    : null,
+  pending_players: r.pendingPlayers || [],
 });
+
 const rowToRoom = (row) => ({
-  code: row.code, hostId: row.host_id, players: row.players || [], categories: row.categories || [], status: row.status,
-  item: row.item, spyId: row.spy_id, scores: row.scores || {}, round: row.round || 0,
-  roundDurationSec: row.round_duration_sec || 480, roundStartedAt: row.round_started_at ? new Date(row.round_started_at).getTime() : null,
-  currentAsker: row.current_asker, currentTarget: row.current_target,
-  votes: row.votes || {}, endVotes: row.end_votes || {}, votingResolved: !!row.voting_resolved,
-  spyGuess: row.spy_guess || null, spyGuessCorrect: row.spy_guess_correct,
-  activeItems: row.active_items || [], votingStartedAt: row.voting_started_at ? new Date(row.voting_started_at).getTime() : null,
-  spyGuessStartedAt: row.spy_guess_started_at ? new Date(row.spy_guess_started_at).getTime() : null,
+  code: row.code,
+  hostId: row.host_id,
+  players: row.players || [],
+  categories: row.categories || [],
+  status: row.status,
+  item: row.item,
+  spyId: row.spy_id,
+  scores: row.scores || {},
+  round: row.round || 0,
+  roundDurationSec: row.round_duration_sec || 480,
+  roundStartedAt: row.round_started_at
+    ? new Date(row.round_started_at).getTime()
+    : null,
+  currentAsker: row.current_asker,
+  currentTarget: row.current_target,
+  votes: row.votes || {},
+  endVotes: row.end_votes || {},
+  votingResolved: !!row.voting_resolved,
+  spyGuess: row.spy_guess || null,
+  spyGuessCorrect: row.spy_guess_correct,
+  activeItems: row.active_items || [],
+  votingStartedAt: row.voting_started_at
+    ? new Date(row.voting_started_at).getTime()
+    : null,
+  spyGuessStartedAt: row.spy_guess_started_at
+    ? new Date(row.spy_guess_started_at).getTime()
+    : null,
+  pendingPlayers: row.pending_players || [],
 });
+
+function deriveScreen(room, meId) {
+  if (!room) return "home";
+
+  if (room.players.some((p) => p.id === meId)) {
+    return room.status;
+  }
+
+  if (
+    (room.pendingPlayers || []).some(
+      (p) => p.id === meId
+    )
+  ) {
+    return "waitingLobby";
+  }
+
+  return "kicked";
+}
 
 async function loadRoom(code) {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/rooms?code=eq.${encodeURIComponent(code)}&select=*`, { headers: sbHeaders });
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/rooms?code=eq.${encodeURIComponent(
+        code
+      )}&select=*`,
+      {
+        headers: sbHeaders,
+      }
+    );
+
     if (!res.ok) return null;
+
     const rows = await res.json();
-    return rows.length ? rowToRoom(rows[0]) : null;
-  } catch { return null; }
+
+    return rows.length
+      ? rowToRoom(rows[0])
+      : null;
+  } catch {
+    return null;
+  }
 }
+
 async function insertRoom(room) {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/rooms`, { method: "POST", headers: { ...sbHeaders, Prefer: "return=representation" }, body: JSON.stringify([roomToRow(room)]) });
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/rooms`,
+      {
+        method: "POST",
+        headers: {
+          ...sbHeaders,
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify([roomToRow(room)]),
+      }
+    );
+
     return res.ok;
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
+
 async function saveRoom(room) {
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/rooms?code=eq.${encodeURIComponent(room.code)}`, { method: "PATCH", headers: { ...sbHeaders, Prefer: "return=representation" }, body: JSON.stringify(roomToRow(room)) });
-  } catch { /* ignore */ }
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/rooms?code=eq.${encodeURIComponent(
+        room.code
+      )}`,
+      {
+        method: "PATCH",
+        headers: {
+          ...sbHeaders,
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify(roomToRow(room)),
+      }
+    );
+  } catch {
+    /* ignore */
+  }
 }
 
 /* =========================================================================
-   SIGNATURE VISUAL — viewfinder frame for the home illustration
+   MILKYMAMBA 007 OPENING
    ========================================================================= */
-function ViewfinderFrame({ children, size = 260, tone = C.blue }) {
-  const ticks = Array.from({ length: 14 });
+
+function MilkyMamba007Intro() {
   return (
-    <div style={{ position: "relative", width: size, height: size, margin: "0 auto" }}>
-      <div style={{ position: "absolute", inset: 0, borderRadius: 20, border: `1.5px solid ${tone}`, boxShadow: `0 0 0 5px ${C.ink}, 0 0 30px rgba(85,136,201,0.18)`, overflow: "hidden", background: "linear-gradient(160deg,#232019,#161513)" }}>
+    <div className="mm007-intro">
+      <div className="mm007-vignette" />
+
+      <div className="mm007-title">
+        <div className="mm007-small">
+          CASE FILE · CLASSIFIED
+        </div>
+
+        <div className="mm007-big">
+          MILKYMAMBA 007
+        </div>
+      </div>
+
+      <div className="mm007-agent">
+        <div className="mm007-agent-head" />
+
+        <div className="mm007-agent-hair" />
+
+        <div className="mm007-eye" />
+
+        <div className="mm007-agent-body" />
+
+        <div className="mm007-agent-shirt" />
+
+        <div className="mm007-bow">
+          <div className="mm007-bow-left" />
+          <div className="mm007-bow-right" />
+        </div>
+
+        <div className="mm007-gun">
+          <div className="mm007-muzzle" />
+
+          <div className="mm007-gun-barrel" />
+
+          <div className="mm007-gun-body" />
+
+          <div className="mm007-gun-grip" />
+
+          <div className="mm007-flash" />
+        </div>
+      </div>
+
+      <div className="mm007-bullet" />
+
+      <div className="mm007-impact" />
+
+      <div className="mm007-cracks">
+        <svg
+          viewBox="0 0 1200 800"
+          preserveAspectRatio="none"
+        >
+          <path d="M600 400 L535 325 L555 220 L510 110" />
+          <path d="M600 400 L670 340 L720 250 L760 100" />
+          <path d="M600 400 L690 405 L815 370 L1010 300" />
+          <path d="M600 400 L685 470 L790 560 L960 680" />
+          <path d="M600 400 L555 490 L500 610 L450 760" />
+          <path d="M600 400 L505 410 L370 390 L120 420" />
+
+          <path d="M555 220 L460 195 L390 130" />
+          <path d="M720 250 L820 210 L930 125" />
+          <path d="M815 370 L900 410 L1090 400" />
+          <path d="M790 560 L860 620 L900 760" />
+          <path d="M500 610 L390 650 L270 750" />
+          <path d="M370 390 L280 320 L150 280" />
+
+          <path d="M535 325 L455 315 L365 250" />
+          <path d="M670 340 L755 300 L850 245" />
+          <path d="M690 405 L780 430 L900 470" />
+          <path d="M685 470 L730 520 L760 600" />
+          <path d="M555 490 L480 520 L400 580" />
+          <path d="M505 410 L420 440 L300 450" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   SIGNATURE VISUAL
+   ========================================================================= */
+
+function ViewfinderFrame({
+  children,
+  size = 260,
+  tone = C.blue,
+}) {
+  const ticks = Array.from({ length: 14 });
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: size,
+        height: size,
+        margin: "0 auto",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: 20,
+          border: `1.5px solid ${tone}`,
+          boxShadow: `
+            0 0 0 5px ${C.ink},
+            0 0 30px rgba(85,136,201,0.18)
+          `,
+          overflow: "hidden",
+          background:
+            "linear-gradient(160deg,#232019,#161513)",
+        }}
+      >
         {children}
       </div>
-      {["-10px", `${size + 2}px`].map((top, ti) => (
-        <div key={ti} style={{ position: "absolute", top, left: 6, right: 6, display: "flex", justifyContent: "space-between" }}>
-          {ticks.map((_, i) => <div key={i} style={{ width: 3, height: 6, background: tone, opacity: 0.55, borderRadius: 1 }} />)}
-        </div>
-      ))}
+
+      {["-10px", `${size + 2}px`].map(
+        (top, ti) => (
+          <div
+            key={ti}
+            style={{
+              position: "absolute",
+              top,
+              left: 6,
+              right: 6,
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            {ticks.map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 3,
+                  height: 6,
+                  background: tone,
+                  opacity: 0.55,
+                  borderRadius: 1,
+                }}
+              />
+            ))}
+          </div>
+        )
+      )}
     </div>
   );
 }
 
 function DetectiveArt() {
   return (
-    <svg viewBox="0 0 260 260" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+    <svg
+      viewBox="0 0 260 260"
+      width="100%"
+      height="100%"
+      preserveAspectRatio="xMidYMid slice"
+    >
       <defs>
-        <radialGradient id="glow" cx="50%" cy="18%" r="60%">
-          <stop offset="0%" stopColor="#2c3a4d" /><stop offset="100%" stopColor="#161513" />
+        <radialGradient
+          id="glow"
+          cx="50%"
+          cy="18%"
+          r="60%"
+        >
+          <stop
+            offset="0%"
+            stopColor="#2c3a4d"
+          />
+
+          <stop
+            offset="100%"
+            stopColor="#161513"
+          />
         </radialGradient>
       </defs>
-      <rect width="260" height="260" fill="url(#glow)" />
-      <line x1="130" y1="0" x2="130" y2="46" stroke="#4a5568" strokeWidth="2" />
-      <ellipse cx="130" cy="54" rx="22" ry="8" fill="#e3d4ad" opacity="0.85" />
-      <ellipse cx="130" cy="54" rx="22" ry="8" fill="none" stroke="#c8bd9e" strokeWidth="1.5" />
-      <rect x="192" y="70" width="46" height="70" rx="3" fill="#1e2733" stroke="#3c4a5c" strokeWidth="2" />
-      <line x1="215" y1="70" x2="215" y2="140" stroke="#3c4a5c" strokeWidth="2" />
-      <rect x="196" y="76" width="18" height="28" fill="#5588c9" opacity="0.35" />
-      <rect x="14" y="150" width="46" height="60" rx="10" fill="#2f3d4d" />
-      <rect x="10" y="140" width="54" height="26" rx="10" fill="#374a5e" />
+
+      <rect
+        width="260"
+        height="260"
+        fill="url(#glow)"
+      />
+
+      <line
+        x1="130"
+        y1="0"
+        x2="130"
+        y2="46"
+        stroke="#4a5568"
+        strokeWidth="2"
+      />
+
+      <ellipse
+        cx="130"
+        cy="54"
+        rx="22"
+        ry="8"
+        fill="#e3d4ad"
+        opacity="0.85"
+      />
+
+      <ellipse
+        cx="130"
+        cy="54"
+        rx="22"
+        ry="8"
+        fill="none"
+        stroke="#c8bd9e"
+        strokeWidth="1.5"
+      />
+
+      <rect
+        x="192"
+        y="70"
+        width="46"
+        height="70"
+        rx="3"
+        fill="#1e2733"
+        stroke="#3c4a5c"
+        strokeWidth="2"
+      />
+
+      <line
+        x1="215"
+        y1="70"
+        x2="215"
+        y2="140"
+        stroke="#3c4a5c"
+        strokeWidth="2"
+      />
+
+      <rect
+        x="196"
+        y="76"
+        width="18"
+        height="28"
+        fill="#5588c9"
+        opacity="0.35"
+      />
+
+      <rect
+        x="14"
+        y="150"
+        width="46"
+        height="60"
+        rx="10"
+        fill="#2f3d4d"
+      />
+
+      <rect
+        x="10"
+        y="140"
+        width="54"
+        height="26"
+        rx="10"
+        fill="#374a5e"
+      />
+
       <g>
-        <ellipse cx="132" cy="118" rx="17" ry="18" fill="#0d0d0c" />
-        <path d="M112 106 q20 -22 40 0 q-4 -18 -20 -18 q-16 0 -20 18 z" fill="#0d0d0c" />
-        <path d="M118 218 L118 150 q0 -22 14 -22 q14 0 14 22 l0 68 z" fill="#141412" />
-        <path d="M100 220 l10 -70 q4 -14 22 -14 q18 0 22 14 l10 70 z" fill="#0a0a09" />
-        <path d="M100 170 q-18 6 -22 26" stroke="#0a0a09" strokeWidth="10" fill="none" strokeLinecap="round" />
-        <path d="M164 170 q18 6 22 26" stroke="#0a0a09" strokeWidth="10" fill="none" strokeLinecap="round" />
-        <rect x="96" y="188" width="68" height="44" rx="2" fill="#e9dfc4" transform="rotate(-3 130 210)" />
-        <line x1="106" y1="200" x2="150" y2="196" stroke="#b9a97c" strokeWidth="1.5" transform="rotate(-3 130 210)" />
-        <line x1="106" y1="210" x2="150" y2="206" stroke="#b9a97c" strokeWidth="1.5" transform="rotate(-3 130 210)" />
-        <line x1="106" y1="220" x2="140" y2="217" stroke="#b9a97c" strokeWidth="1.5" transform="rotate(-3 130 210)" />
+        <ellipse
+          cx="132"
+          cy="118"
+          rx="17"
+          ry="18"
+          fill="#0d0d0c"
+        />
+
+        <path
+          d="M112 106 q20 -22 40 0 q-4 -18 -20 -18 q-16 0 -20 18 z"
+          fill="#0d0d0c"
+        />
+
+        <ellipse
+          cx="126"
+          cy="117"
+          rx="3.5"
+          ry="2"
+          fill="#75b9ff"
+          className="spy-eye"
+          style={{
+            filter:
+              "drop-shadow(0 0 3px #75b9ff) drop-shadow(0 0 9px rgba(85,136,201,.8))",
+          }}
+        />
+
+        <path
+          d="M118 218 L118 150 q0 -22 14 -22 q14 0 14 22 l0 68 z"
+          fill="#141412"
+        />
+
+        <path
+          d="M100 220 l10 -70 q4 -14 22 -14 q18 0 22 14 l10 70 z"
+          fill="#0a0a09"
+        />
+
+        <path
+          d="M100 170 q-18 6 -22 26"
+          stroke="#0a0a09"
+          strokeWidth="10"
+          fill="none"
+          strokeLinecap="round"
+        />
+
+        <path
+          d="M164 170 q18 6 22 26"
+          stroke="#0a0a09"
+          strokeWidth="10"
+          fill="none"
+          strokeLinecap="round"
+        />
+
+        <rect
+          x="96"
+          y="188"
+          width="68"
+          height="44"
+          rx="2"
+          fill="#e9dfc4"
+          transform="rotate(-3 130 210)"
+        />
+
+        <line
+          x1="106"
+          y1="200"
+          x2="150"
+          y2="196"
+          stroke="#b9a97c"
+          strokeWidth="1.5"
+          transform="rotate(-3 130 210)"
+        />
+
+        <line
+          x1="106"
+          y1="210"
+          x2="150"
+          y2="206"
+          stroke="#b9a97c"
+          strokeWidth="1.5"
+          transform="rotate(-3 130 210)"
+        />
+
+        <line
+          x1="106"
+          y1="220"
+          x2="140"
+          y2="217"
+          stroke="#b9a97c"
+          strokeWidth="1.5"
+          transform="rotate(-3 130 210)"
+        />
       </g>
-      <rect x="0" y="236" width="260" height="24" fill="#1b1917" opacity="0.6" />
+
+      <rect
+        x="0"
+        y="236"
+        width="260"
+        height="24"
+        fill="#1b1917"
+        opacity="0.6"
+      />
     </svg>
   );
 }
 
-function Avatar({ name, size = 44, ring }) {
+/* =========================================================================
+   SPY OFFICE SCENE
+   ========================================================================= */
+
+function SpyOfficeScene() {
+  const desk = (x, idx) => (
+    <g
+      key={idx}
+      transform={`translate(${x},0)`}
+    >
+      <rect
+        x="6"
+        y="150"
+        width="88"
+        height="8"
+        rx="2"
+        fill="#2a2617"
+      />
+
+      <rect
+        x="14"
+        y="158"
+        width="6"
+        height="34"
+        fill="#201d12"
+      />
+
+      <rect
+        x="78"
+        y="158"
+        width="6"
+        height="34"
+        fill="#201d12"
+      />
+
+      <rect
+        x="26"
+        y="132"
+        width="48"
+        height="30"
+        rx="3"
+        fill="#1c2733"
+        stroke="#3c4a5c"
+        strokeWidth="1.5"
+      />
+
+      <rect
+        x="30"
+        y="136"
+        width="40"
+        height="20"
+        rx="1"
+        fill="#5588c9"
+        opacity="0.3"
+      />
+    </g>
+  );
+
   return (
-    <div style={{ width: size, height: size, borderRadius: "50%", flexShrink: 0, background: hashColor(name || "?"), display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: size * 0.34, color: "#141412", border: ring ? `3px solid ${ring}` : "2px solid rgba(243,234,214,0.15)", boxShadow: ring ? `0 0 14px ${ring}` : "none", transition: "all .25s ease" }}>
+    <svg
+      viewBox="0 0 300 260"
+      width="100%"
+      height="100%"
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <defs>
+        <radialGradient
+          id="officeGlow"
+          cx="50%"
+          cy="15%"
+          r="65%"
+        >
+          <stop
+            offset="0%"
+            stopColor="#2c3a4d"
+          />
+
+          <stop
+            offset="100%"
+            stopColor="#141310"
+          />
+        </radialGradient>
+      </defs>
+
+      <rect
+        width="300"
+        height="260"
+        fill="url(#officeGlow)"
+      />
+
+      {/* LEFT COWORKER */}
+
+      <g
+        transform="translate(20,0)"
+        className="office-idle"
+        style={{
+          animationDelay: "0s",
+        }}
+      >
+        {desk(0, "d1")}
+
+        <ellipse
+          cx="50"
+          cy="108"
+          rx="13"
+          ry="14"
+          fill="#0d0d0c"
+        />
+
+        <path
+          d="M38 100 q12 -14 24 0 q-2 -12 -12 -12 q-10 0 -12 12 z"
+          fill="#0d0d0c"
+        />
+
+        <path
+          d="M32 100 q18 -6 36 0"
+          stroke="#5588c9"
+          strokeWidth="3"
+          fill="none"
+          opacity="0.7"
+        />
+
+        <path
+          d="M44 148 L44 122 q6 -8 12 0 l0 26 z"
+          fill="#141412"
+        />
+      </g>
+
+      {/* RIGHT COWORKER */}
+
+      <g
+        transform="translate(210,0)"
+        className="office-idle"
+        style={{
+          animationDelay: "1.4s",
+        }}
+      >
+        {desk(0, "d3")}
+
+        <ellipse
+          cx="50"
+          cy="108"
+          rx="13"
+          ry="14"
+          fill="#0d0d0c"
+        />
+
+        <path
+          d="M38 100 q12 -14 24 0 q-2 -12 -12 -12 q-10 0 -12 12 z"
+          fill="#0d0d0c"
+        />
+
+        <path
+          d="M32 100 q18 -6 36 0"
+          stroke="#5588c9"
+          strokeWidth="3"
+          fill="none"
+          opacity="0.7"
+        />
+
+        <path
+          d="M44 148 L44 122 q6 -8 12 0 l0 26 z"
+          fill="#141412"
+        />
+      </g>
+
+      {/* CENTER SPY DESK */}
+
+      {desk(115, "d2")}
+
+      {/* SEATED SPY */}
+
+      <g className="spy-seated">
+        <ellipse
+          cx="165"
+          cy="108"
+          rx="13"
+          ry="14"
+          fill="#0d0d0c"
+        />
+
+        <path
+          d="M153 100 q12 -14 24 0 q-2 -12 -12 -12 q-10 0 -12 12 z"
+          fill="#0d0d0c"
+        />
+
+        <ellipse
+          cx="160"
+          cy="108"
+          rx="3"
+          ry="1.8"
+          fill="#75b9ff"
+          className="spy-eye"
+        />
+
+        <path
+          d="M147 100 q18 -6 36 0"
+          stroke="#93b7de"
+          strokeWidth="3"
+          fill="none"
+          opacity="0.85"
+        />
+
+        <path
+          d="M159 148 L159 122 q6 -8 12 0 l0 26 z"
+          fill="#141412"
+        />
+      </g>
+
+      {/* STANDING SPY */}
+
+      <g className="spy-standing">
+        <path
+          d="M165 210 L165 130 q0 -20 13 -20 q13 0 13 20 l0 80 z"
+          fill="#0a0a09"
+        />
+
+        <ellipse
+          cx="178"
+          cy="98"
+          rx="14"
+          ry="15"
+          fill="#0d0d0c"
+        />
+
+        <path
+          d="M165 90 q13 -15 26 0 q-2 -13 -13 -13 q-11 0 -13 13 z"
+          fill="#0d0d0c"
+        />
+
+        <ellipse
+          cx="173"
+          cy="98"
+          rx="3"
+          ry="1.8"
+          fill="#75b9ff"
+          className="spy-eye"
+        />
+
+        {/* extended finger gun arm */}
+
+        <path
+          d="M188 150 q26 -6 40 -18"
+          stroke="#0a0a09"
+          strokeWidth="9"
+          fill="none"
+          strokeLinecap="round"
+        />
+
+        <circle
+          className="muzzle-flash"
+          cx="230"
+          cy="128"
+          r="7"
+          fill="#93b7de"
+        />
+
+        {/* other arm */}
+
+        <path
+          d="M168 150 q-10 14 -6 30"
+          stroke="#0a0a09"
+          strokeWidth="9"
+          fill="none"
+          strokeLinecap="round"
+        />
+      </g>
+
+      <text
+        className="mamba-tag"
+        x="150"
+        y="46"
+        textAnchor="middle"
+        fontFamily="Georgia, serif"
+        fontWeight="700"
+        fontSize="15"
+        fill="#f3ead6"
+        letterSpacing="1"
+      >
+        MILKY MAMBA 007
+      </text>
+    </svg>
+  );
+}
+
+/* =========================================================================
+   AVATAR
+   ========================================================================= */
+
+function Avatar({
+  name,
+  size = 44,
+  ring,
+}) {
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        flexShrink: 0,
+        background: hashColor(name || "?"),
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: 800,
+        fontSize: size * 0.34,
+        color: "#141412",
+        border: ring
+          ? `3px solid ${ring}`
+          : "2px solid rgba(243,234,214,0.15)",
+        boxShadow: ring
+          ? `0 0 14px ${ring}`
+          : "none",
+        transition: "all .25s ease",
+      }}
+    >
       {initials(name)}
     </div>
   );
 }
 
-/* ---------------- Primitives ---------------- */
+/* =========================================================================
+   PRIMITIVES
+   ========================================================================= */
+
 function Card({ children, style }) {
-  return <div style={{ background: `linear-gradient(180deg,${C.panel},${C.panel2})`, border: `1px solid ${C.line}`, borderRadius: 18, padding: 22, marginBottom: 16, boxShadow: "0 14px 34px rgba(0,0,0,0.4)", ...style }}>{children}</div>;
+  return (
+    <div
+      style={{
+        background: `linear-gradient(
+          180deg,
+          ${C.panel},
+          ${C.panel2}
+        )`,
+        border: `1px solid ${C.line}`,
+        borderRadius: 18,
+        padding: 22,
+        marginBottom: 16,
+        boxShadow:
+          "0 14px 34px rgba(0,0,0,0.4)",
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
-/* Buttons: press feedback (scale) is instant via CSS; async onClick shows a
-   spinner + "Working…" label so the person always sees something happened. */
-function PrimaryButton({ children, onClick, disabled, style }) {
+function PrimaryButton({
+  children,
+  onClick,
+  disabled,
+  style,
+}) {
   const [busy, setBusy] = useState(false);
+
   const mounted = useRef(true);
-  useEffect(() => () => { mounted.current = false; }, []);
+
+  useEffect(() => {
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
   async function handle(e) {
-    if (disabled || busy || !onClick) return;
+    if (
+      disabled ||
+      busy ||
+      !onClick
+    ) {
+      return;
+    }
+
     setBusy(true);
-    try { await onClick(e); } finally { if (mounted.current) setBusy(false); }
+
+    try {
+      await onClick(e);
+    } finally {
+      if (mounted.current) {
+        setBusy(false);
+      }
+    }
   }
+
   return (
-    <button className="press-btn" onClick={handle} disabled={disabled || busy} style={{ width: "100%", fontFamily: sans, fontWeight: 700, fontSize: 15, letterSpacing: 0.2, background: disabled ? "#4a453a" : C.blue, color: "#0d0d0c", border: "none", borderRadius: 12, padding: "14px 18px", cursor: disabled || busy ? "not-allowed" : "pointer", opacity: disabled ? 0.55 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: disabled ? "none" : "0 8px 20px rgba(85,136,201,0.35)", ...style }}>
-      {busy ? <><Loader2 size={16} className="spin-icon" /> Working…</> : children}
+    <button
+      className="press-btn"
+      onClick={handle}
+      disabled={disabled || busy}
+      style={{
+        width: "100%",
+        fontFamily: sans,
+        fontWeight: 700,
+        fontSize: 15,
+        letterSpacing: 0.2,
+        background: disabled
+          ? "#4a453a"
+          : C.blue,
+        color: "#0d0d0c",
+        border: "none",
+        borderRadius: 12,
+        padding: "14px 18px",
+        cursor:
+          disabled || busy
+            ? "not-allowed"
+            : "pointer",
+        opacity: disabled ? 0.55 : 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        boxShadow: disabled
+          ? "none"
+          : "0 8px 20px rgba(85,136,201,0.35)",
+        ...style,
+      }}
+    >
+      {busy ? (
+        <>
+          <Loader2
+            size={16}
+            className="spin-icon"
+          />
+          Working…
+        </>
+      ) : (
+        children
+      )}
     </button>
   );
 }
-function GhostButton({ children, onClick, active, style }) {
+
+function GhostButton({
+  children,
+  onClick,
+  active,
+  style,
+}) {
   const [busy, setBusy] = useState(false);
+
   const mounted = useRef(true);
-  useEffect(() => () => { mounted.current = false; }, []);
+
+  useEffect(() => {
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
   async function handle(e) {
     if (busy || !onClick) return;
+
     setBusy(true);
-    try { await onClick(e); } finally { if (mounted.current) setBusy(false); }
+
+    try {
+      await onClick(e);
+    } finally {
+      if (mounted.current) {
+        setBusy(false);
+      }
+    }
   }
+
   return (
-    <button className="press-btn" onClick={handle} disabled={busy} style={{ width: "100%", fontFamily: sans, fontWeight: 700, fontSize: 14, background: active ? "rgba(85,136,201,0.16)" : "transparent", color: active ? C.blue : C.cream, border: `1px solid ${active ? C.blue : C.line}`, borderRadius: 12, padding: "13px 18px", cursor: busy ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, ...style }}>
-      {busy ? <Loader2 size={15} className="spin-icon" /> : children}
+    <button
+      className="press-btn"
+      onClick={handle}
+      disabled={busy}
+      style={{
+        width: "100%",
+        fontFamily: sans,
+        fontWeight: 700,
+        fontSize: 14,
+        background: active
+          ? "rgba(85,136,201,0.16)"
+          : "transparent",
+        color: active
+          ? C.blue
+          : C.cream,
+        border: `1px solid ${
+          active ? C.blue : C.line
+        }`,
+        borderRadius: 12,
+        padding: "13px 18px",
+        cursor: busy
+          ? "not-allowed"
+          : "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        ...style,
+      }}
+    >
+      {busy ? (
+        <Loader2
+          size={15}
+          className="spin-icon"
+        />
+      ) : (
+        children
+      )}
     </button>
   );
 }
-function Eyebrow({ children }) { return <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: C.blue, fontWeight: 700, marginBottom: 6, fontFamily: sans }}>{children}</div>; }
-function Title({ children }) { return <h1 style={{ fontFamily: serif, fontSize: 32, fontWeight: 700, color: C.cream, margin: "0 0 6px", letterSpacing: 0.2 }}>{children}</h1>; }
-function Sub({ children }) { return <p style={{ color: C.creamDim, fontSize: 14, lineHeight: 1.6, margin: "0 0 22px", fontFamily: sans }}>{children}</p>; }
 
-const labelStyle = { display: "block", fontSize: 12, color: C.creamDim, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: sans };
-const inputStyle = { width: "100%", background: "rgba(0,0,0,0.3)", border: `1px solid ${C.line}`, color: C.cream, padding: "12px 14px", borderRadius: 10, fontSize: 16, outline: "none", marginBottom: 14, fontFamily: sans, boxSizing: "border-box" };
+function Eyebrow({ children }) {
+  return (
+    <div
+      style={{
+        fontSize: 11,
+        letterSpacing: "0.2em",
+        textTransform: "uppercase",
+        color: C.blue,
+        fontWeight: 700,
+        marginBottom: 6,
+        fontFamily: sans,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
 
-function fmtClock(sec) { sec = Math.max(0, Math.round(sec)); const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${s.toString().padStart(2, "0")}`; }
-function computeRemaining(startedAt, durationSec) { if (!startedAt) return durationSec; return Math.max(0, durationSec - (Date.now() - startedAt) / 1000); }
+function Title({ children }) {
+  return (
+    <h1
+      style={{
+        fontFamily: serif,
+        fontSize: 32,
+        fontWeight: 700,
+        color: C.cream,
+        margin: "0 0 6px",
+        letterSpacing: 0.2,
+      }}
+    >
+      {children}
+    </h1>
+  );
+}
 
-const CountdownLabel = React.memo(function CountdownLabel({ startedAt, durationSec }) {
-  const [remaining, setRemaining] = useState(() => computeRemaining(startedAt, durationSec));
-  useEffect(() => {
-    const id = setInterval(() => setRemaining(computeRemaining(startedAt, durationSec)), 1000);
-    return () => clearInterval(id);
-  }, [startedAt, durationSec]);
-  return <>{fmtClock(remaining)}</>;
-});
+function Sub({ children }) {
+  return (
+    <p
+      style={{
+        color: C.creamDim,
+        fontSize: 14,
+        lineHeight: 1.6,
+        margin: "0 0 22px",
+        fontFamily: sans,
+      }}
+    >
+      {children}
+    </p>
+  );
+}
 
-function useOpenMode(startedAt, durationSec) {
-  const [openMode, setOpenMode] = useState(() => computeRemaining(startedAt, durationSec) <= OPEN_WINDOW_SEC);
+const labelStyle = {
+  display: "block",
+  fontSize: 12,
+  color: C.creamDim,
+  marginBottom: 6,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  fontFamily: sans,
+};
+
+const inputStyle = {
+  width: "100%",
+  background: "rgba(0,0,0,0.3)",
+  border: `1px solid ${C.line}`,
+  color: C.cream,
+  padding: "12px 14px",
+  borderRadius: 10,
+  fontSize: 16,
+  outline: "none",
+  marginBottom: 14,
+  fontFamily: sans,
+  boxSizing: "border-box",
+};
+
+function fmtClock(sec) {
+  sec = Math.max(0, Math.round(sec));
+
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+
+  return `${m}:${s
+    .toString()
+    .padStart(2, "0")}`;
+}
+
+function computeRemaining(
+  startedAt,
+  durationSec
+) {
+  if (!startedAt) return durationSec;
+
+  return Math.max(
+    0,
+    durationSec -
+      (Date.now() - startedAt) / 1000
+  );
+}
+
+const CountdownLabel = React.memo(
+  function CountdownLabel({
+    startedAt,
+    durationSec,
+  }) {
+    const [remaining, setRemaining] =
+      useState(() =>
+        computeRemaining(
+          startedAt,
+          durationSec
+        )
+      );
+
+    useEffect(() => {
+      const id = setInterval(() => {
+        setRemaining(
+          computeRemaining(
+            startedAt,
+            durationSec
+          )
+        );
+      }, 1000);
+
+      return () => clearInterval(id);
+    }, [startedAt, durationSec]);
+
+    return <>{fmtClock(remaining)}</>;
+  }
+);
+
+function useOpenMode(
+  startedAt,
+  durationSec
+) {
+  const [openMode, setOpenMode] =
+    useState(
+      () =>
+        computeRemaining(
+          startedAt,
+          durationSec
+        ) <= OPEN_WINDOW_SEC
+    );
+
   useEffect(() => {
     const id = setInterval(() => {
-      const om = computeRemaining(startedAt, durationSec) <= OPEN_WINDOW_SEC;
-      setOpenMode(prev => (prev === om ? prev : om));
+      const om =
+        computeRemaining(
+          startedAt,
+          durationSec
+        ) <= OPEN_WINDOW_SEC;
+
+      setOpenMode((prev) =>
+        prev === om ? prev : om
+      );
     }, 1000);
+
     return () => clearInterval(id);
   }, [startedAt, durationSec]);
+
   return openMode;
 }
 
-/* Analog-style wall clock: a dial with tick marks and a sweeping hand that
-   points further round as the round's time runs out, plus a digital
-   readout underneath. Ticks on its own interval so it never forces the
-   rest of the screen to re-render. */
-const WallClock = React.memo(function WallClock({ startedAt, durationSec, size = 128 }) {
-  const [remaining, setRemaining] = useState(() => computeRemaining(startedAt, durationSec));
-  useEffect(() => {
-    const id = setInterval(() => setRemaining(computeRemaining(startedAt, durationSec)), 1000);
-    return () => clearInterval(id);
-  }, [startedAt, durationSec]);
-  const frac = durationSec > 0 ? remaining / durationSec : 0;
-  const angle = (1 - frac) * 2 * Math.PI;
-  const cx = size / 2, cy = size / 2, r = size / 2 - 10;
-  const handX = cx + r * 0.74 * Math.sin(angle);
-  const handY = cy - r * 0.74 * Math.cos(angle);
-  const urgent = remaining <= OPEN_WINDOW_SEC;
-  const ticks = Array.from({ length: 12 });
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
-        <circle cx={cx} cy={cy} r={r} fill="rgba(0,0,0,0.28)" stroke={urgent ? C.blue : C.line} strokeWidth="2" />
-        {ticks.map((_, i) => {
-          const a = (i / 12) * 2 * Math.PI;
-          const inner = i % 3 === 0 ? r - 10 : r - 6;
-          const x1 = cx + inner * Math.sin(a), y1 = cy - inner * Math.cos(a);
-          const x2 = cx + r * Math.sin(a), y2 = cy - r * Math.cos(a);
-          return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={C.creamDim} strokeWidth={i % 3 === 0 ? 2 : 1} opacity={0.55} />;
-        })}
-        <line x1={cx} y1={cy} x2={handX} y2={handY} stroke={urgent ? C.blue : C.blueSoft} strokeWidth="3.5" strokeLinecap="round" />
-        <circle cx={cx} cy={cy} r="4.5" fill={C.cream} />
-      </svg>
-      <div style={{ fontFamily: sans, fontWeight: 800, fontSize: 18, letterSpacing: 0.5, color: urgent ? C.blue : C.cream }}>{fmtClock(remaining)}</div>
-      <div style={{ fontSize: 10, color: C.creamDim, textTransform: "uppercase", letterSpacing: "0.1em" }}>time remaining</div>
-    </div>
-  );
-});
+/* =========================================================================
+   WALL CLOCK
+   ========================================================================= */
 
-/* Rectangular player card — avatar, name, points, optional badge/right slot.
-   `isMe` gives the current user's own row a distinct cream treatment so
-   they can immediately spot themselves apart from everyone else. */
-function PlayerRow({ player, points, badge, badgeColor, right, onClick, highlight, isMe }) {
+const WallClock = React.memo(
+  function WallClock({
+    startedAt,
+    durationSec,
+    size = 128,
+  }) {
+    const [remaining, setRemaining] =
+      useState(() =>
+        computeRemaining(
+          startedAt,
+          durationSec
+        )
+      );
+
+    useEffect(() => {
+      const id = setInterval(() => {
+        setRemaining(
+          computeRemaining(
+            startedAt,
+            durationSec
+          )
+        );
+      }, 1000);
+
+      return () => clearInterval(id);
+    }, [startedAt, durationSec]);
+
+    const frac =
+      durationSec > 0
+        ? remaining / durationSec
+        : 0;
+
+    const angle =
+      (1 - frac) * 2 * Math.PI;
+
+    const cx = size / 2;
+    const cy = size / 2;
+    const r = size / 2 - 10;
+
+    const handX =
+      cx +
+      r *
+        0.74 *
+        Math.sin(angle);
+
+    const handY =
+      cy -
+      r *
+        0.74 *
+        Math.cos(angle);
+
+    const urgent =
+      remaining <= OPEN_WINDOW_SEC;
+
+    const ticks = Array.from({
+      length: 12,
+    });
+
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <svg
+          viewBox={`0 0 ${size} ${size}`}
+          width={size}
+          height={size}
+        >
+          <circle
+            cx={cx}
+            cy={cy}
+            r={r}
+            fill="rgba(0,0,0,0.28)"
+            stroke={
+              urgent
+                ? C.blue
+                : C.line
+            }
+            strokeWidth="2"
+          />
+
+          {ticks.map((_, i) => {
+            const a =
+              (i / 12) *
+              2 *
+              Math.PI;
+
+            const inner =
+              i % 3 === 0
+                ? r - 10
+                : r - 6;
+
+            const x1 =
+              cx +
+              inner *
+                Math.sin(a);
+
+            const y1 =
+              cy -
+              inner *
+                Math.cos(a);
+
+            const x2 =
+              cx +
+              r *
+                Math.sin(a);
+
+            const y2 =
+              cy -
+              r *
+                Math.cos(a);
+
+            return (
+              <line
+                key={i}
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke={C.creamDim}
+                strokeWidth={
+                  i % 3 === 0
+                    ? 2
+                    : 1
+                }
+                opacity={0.55}
+              />
+            );
+          })}
+
+          <line
+            x1={cx}
+            y1={cy}
+            x2={handX}
+            y2={handY}
+            stroke={
+              urgent
+                ? C.blue
+                : C.blueSoft
+            }
+            strokeWidth="3.5"
+            strokeLinecap="round"
+          />
+
+          <circle
+            cx={cx}
+            cy={cy}
+            r="4.5"
+            fill={C.cream}
+          />
+        </svg>
+
+        <div
+          style={{
+            fontFamily: sans,
+            fontWeight: 800,
+            fontSize: 18,
+            letterSpacing: 0.5,
+            color: urgent
+              ? C.blue
+              : C.cream,
+          }}
+        >
+          {fmtClock(remaining)}
+        </div>
+
+        <div
+          style={{
+            fontSize: 10,
+            color: C.creamDim,
+            textTransform:
+              "uppercase",
+            letterSpacing:
+              "0.1em",
+          }}
+        >
+          time remaining
+        </div>
+      </div>
+    );
+  }
+);
+
+/* =========================================================================
+   PLAYER ROW
+   ========================================================================= */
+
+function PlayerRow({
+  player,
+  points,
+  badge,
+  badgeColor,
+  right,
+  onClick,
+  highlight,
+  isMe,
+}) {
   const meStyle = isMe
-    ? { border: `1.5px solid ${C.cream}`, background: "rgba(243,234,214,0.10)" }
-    : { border: `1px solid ${highlight ? C.blue : C.line}`, background: highlight ? "rgba(85,136,201,0.12)" : "rgba(0,0,0,0.2)" };
+    ? {
+        border: `1.5px solid ${C.cream}`,
+        background:
+          "rgba(243,234,214,0.10)",
+      }
+    : {
+        border: `1px solid ${
+          highlight
+            ? C.blue
+            : C.line
+        }`,
+        background: highlight
+          ? "rgba(85,136,201,0.12)"
+          : "rgba(0,0,0,0.2)",
+      };
+
   return (
-    <div className="prow" onClick={onClick} style={{ ...meStyle, cursor: onClick ? "pointer" : "default" }}>
-      <Avatar name={player.name} size={38} ring={isMe ? C.cream : undefined} />
-      <span style={{ fontSize: 13, color: C.cream, fontWeight: isMe ? 700 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{player.name}</span>
-      {isMe && <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: C.ink, background: C.cream, borderRadius: 999, padding: "2px 8px" }}>You</span>}
-      {badge && <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: badgeColor || C.blue, border: `1px solid ${badgeColor || C.blue}`, borderRadius: 999, padding: "2px 8px" }}>{badge}</span>}
-      <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 12, fontWeight: 700, color: C.blueSoft }}>{points ?? 0} pt{(points ?? 0) !== 1 ? "s" : ""}</span>
+    <div
+      className="prow"
+      onClick={onClick}
+      style={{
+        ...meStyle,
+        cursor: onClick
+          ? "pointer"
+          : "default",
+      }}
+    >
+      <Avatar
+        name={player.name}
+        size={38}
+        ring={
+          isMe
+            ? C.cream
+            : undefined
+        }
+      />
+
+      <span
+        style={{
+          fontSize: 13,
+          color: C.cream,
+          fontWeight: isMe
+            ? 700
+            : 400,
+          overflow: "hidden",
+          textOverflow:
+            "ellipsis",
+          whiteSpace:
+            "nowrap",
+        }}
+      >
+        {player.name}
+      </span>
+
+      {isMe && (
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing:
+              "0.06em",
+            textTransform:
+              "uppercase",
+            color: C.ink,
+            background: C.cream,
+            borderRadius: 999,
+            padding: "2px 8px",
+          }}
+        >
+          You
+        </span>
+      )}
+
+      {badge && (
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing:
+              "0.06em",
+            textTransform:
+              "uppercase",
+            color:
+              badgeColor ||
+              C.blue,
+            border: `1px solid ${
+              badgeColor ||
+              C.blue
+            }`,
+            borderRadius: 999,
+            padding: "2px 8px",
+          }}
+        >
+          {badge}
+        </span>
+      )}
+
+      <span
+        style={{
+          marginLeft: "auto",
+          flexShrink: 0,
+          fontSize: 12,
+          fontWeight: 700,
+          color: C.blueSoft,
+        }}
+      >
+        {points ?? 0} pt
+        {(points ?? 0) !== 1
+          ? "s"
+          : ""}
+      </span>
+
       {right}
     </div>
   );
@@ -303,531 +2457,3137 @@ function PlayerRow({ player, points, badge, badgeColor, right, onClick, highligh
 /* =========================================================================
    MAIN APP
    ========================================================================= */
-export default function App() {
-  const [me] = useState(() => ({ id: uid(), name: "" }));
-  const [name, setName] = useState("");
-  const [screen, setScreen] = useState("home");
-  const [homeTab, setHomeTab] = useState("create");
-  const [codeInput, setCodeInput] = useState("");
-  const [joinError, setJoinError] = useState("");
-  const [room, setRoom] = useState(null);
-  const [selectedCats, setSelectedCats] = useState(new Set(CAT_KEYS));
-  const [roundMinutes, setRoundMinutes] = useState(8);
-  const pollTimeoutRef = useRef(null);
-  const pollStopRef = useRef(true);
-  const roomRef = useRef(null);
-  useEffect(() => { roomRef.current = room; }, [room]);
-  useEffect(() => { me.name = name; }, [name]); // eslint-disable-line
 
-  // Self-scheduling poll: only ever queues the NEXT fetch after the current
-  // one resolves, instead of firing on a fixed clock. This prevents
-  // requests from stacking up if the network is slow — the exact thing
-  // that was making the game bog down after several rounds.
-  const startPolling = useCallback((code) => {
-    if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
-    pollStopRef.current = false;
-    const tick = async () => {
-      if (pollStopRef.current) return;
-      const fresh = await loadRoom(code);
-      if (pollStopRef.current) return;
-      if (fresh) { setRoom(fresh); setScreen(fresh.status); }
-      if (!pollStopRef.current) pollTimeoutRef.current = setTimeout(tick, 2200);
-    };
-    pollTimeoutRef.current = setTimeout(tick, 2200);
+export default function App() {
+  const [me] = useState(() => ({
+    id: uid(),
+    name: "",
+  }));
+
+  const [name, setName] =
+    useState("");
+
+  const [screen, setScreen] =
+    useState("home");
+
+  const [homeTab, setHomeTab] =
+    useState("create");
+
+  const [codeInput, setCodeInput] =
+    useState("");
+
+  const [joinError, setJoinError] =
+    useState("");
+
+  const [room, setRoom] =
+    useState(null);
+
+  const [selectedCats, setSelectedCats] =
+    useState(
+      new Set(CAT_KEYS)
+    );
+
+  const [roundMinutes, setRoundMinutes] =
+    useState(8);
+
+  /* ---------------------------------------------------------
+     007 INTRO
+     --------------------------------------------------------- */
+
+  const [show007Intro, setShow007Intro] =
+    useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShow007Intro(false);
+    }, 6200);
+
+    return () => clearTimeout(timer);
   }, []);
-  useEffect(() => () => { pollStopRef.current = true; if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current); }, []);
+
+  /* ---------------------------------------------------------
+     POLLING
+     --------------------------------------------------------- */
+
+  const pollTimeoutRef =
+    useRef(null);
+
+  const pollStopRef =
+    useRef(true);
+
+  const roomRef =
+    useRef(null);
+
+  useEffect(() => {
+    roomRef.current = room;
+  }, [room]);
+
+  useEffect(() => {
+    me.name = name;
+  }, [name]);
+
+  const startPolling =
+    useCallback(
+      (code) => {
+        if (pollTimeoutRef.current) {
+          clearTimeout(
+            pollTimeoutRef.current
+          );
+        }
+
+        pollStopRef.current = false;
+
+        const tick = async () => {
+          if (pollStopRef.current) {
+            return;
+          }
+
+          const fresh =
+            await loadRoom(code);
+
+          if (pollStopRef.current) {
+            return;
+          }
+
+          if (fresh) {
+            setRoom(fresh);
+            setScreen(
+              deriveScreen(
+                fresh,
+                me.id
+              )
+            );
+          }
+
+          if (
+            !pollStopRef.current
+          ) {
+            pollTimeoutRef.current =
+              setTimeout(
+                tick,
+                2200
+              );
+          }
+        };
+
+        pollTimeoutRef.current =
+          setTimeout(
+            tick,
+            2200
+          );
+      },
+      [me.id]
+    );
+
+  useEffect(() => {
+    return () => {
+      pollStopRef.current = true;
+
+      if (pollTimeoutRef.current) {
+        clearTimeout(
+          pollTimeoutRef.current
+        );
+      }
+    };
+  }, []);
+
+  /* ---------------------------------------------------------
+     ROOM ACTIONS
+     --------------------------------------------------------- */
 
   async function createRoom() {
-    if (!name.trim()) { setJoinError("Enter your name first."); return; }
+    if (!name.trim()) {
+      setJoinError(
+        "Enter your name first."
+      );
+      return;
+    }
+
     const code = roomCode();
+
     const r = {
-      code, hostId: me.id, players: [{ id: me.id, name }], categories: CAT_KEYS, status: "lobby",
-      item: null, spyId: null, scores: { [me.id]: 0 }, round: 0,
-      roundDurationSec: 480, roundStartedAt: null, currentAsker: null, currentTarget: null,
-      votes: {}, endVotes: {}, votingResolved: false, spyGuess: null, spyGuessCorrect: null,
+      code,
+      hostId: me.id,
+
+      players: [
+        {
+          id: me.id,
+          name,
+        },
+      ],
+
+      pendingPlayers: [],
+      categories: CAT_KEYS,
+      status: "lobby",
+
+      item: null,
+      spyId: null,
+
+      scores: {
+        [me.id]: 0,
+      },
+
+      round: 0,
+
+      roundDurationSec: 480,
+      roundStartedAt: null,
+
+      currentAsker: null,
+      currentTarget: null,
+
+      votes: {},
+      endVotes: {},
+
+      votingResolved: false,
+
+      spyGuess: null,
+      spyGuessCorrect: null,
     };
-    const ok = await insertRoom(r);
-    if (!ok) { setJoinError("Couldn't create a room — check the Supabase setup."); return; }
-    setRoom(r); setScreen("lobby"); startPolling(code);
+
+    const ok =
+      await insertRoom(r);
+
+    if (!ok) {
+      setJoinError(
+        "Couldn't create a room — check the Supabase setup."
+      );
+      return;
+    }
+
+    setRoom(r);
+    setScreen("lobby");
+
+    startPolling(code);
   }
+
   async function joinRoom() {
-    if (!name.trim()) { setJoinError("Enter your name first."); return; }
-    const code = codeInput.trim().toUpperCase();
-    if (!code) { setJoinError("Enter a room code."); return; }
-    const r = await loadRoom(code);
-    if (!r) { setJoinError("No room found with that code."); return; }
-    if (!r.players.find(p => p.id === me.id)) {
-      r.players.push({ id: me.id, name });
-      r.scores = { ...r.scores, [me.id]: r.scores[me.id] ?? 0 };
+    if (!name.trim()) {
+      setJoinError(
+        "Enter your name first."
+      );
+      return;
+    }
+
+    const code =
+      codeInput
+        .trim()
+        .toUpperCase();
+
+    if (!code) {
+      setJoinError(
+        "Enter a room code."
+      );
+      return;
+    }
+
+    const r =
+      await loadRoom(code);
+
+    if (!r) {
+      setJoinError(
+        "No room found with that code."
+      );
+      return;
+    }
+
+    const already =
+      r.players.some(
+        (p) => p.id === me.id
+      ) ||
+      (r.pendingPlayers || []).some(
+        (p) => p.id === me.id
+      );
+
+    if (!already) {
+      if (r.status === "lobby") {
+        r.players.push({
+          id: me.id,
+          name,
+        });
+      } else {
+        r.pendingPlayers = [
+          ...(r.pendingPlayers || []),
+          {
+            id: me.id,
+            name,
+          },
+        ];
+      }
+
+      r.scores = {
+        ...r.scores,
+        [me.id]:
+          r.scores[me.id] ?? 0,
+      };
+
       await saveRoom(r);
     }
-    setJoinError(""); setRoom(r); setScreen(r.status); startPolling(code);
+
+    setJoinError("");
+    setRoom(r);
+    setScreen(
+      deriveScreen(r, me.id)
+    );
+
+    startPolling(code);
   }
-  function toggleCat(k) { const s = new Set(selectedCats); s.has(k) ? s.delete(k) : s.add(k); setSelectedCats(s); }
+
+  function toggleCat(k) {
+    const s = new Set(
+      selectedCats
+    );
+
+    if (s.has(k)) {
+      s.delete(k);
+    } else {
+      s.add(k);
+    }
+
+    setSelectedCats(s);
+  }
+
+  async function kickPlayer(
+    playerId
+  ) {
+    const r =
+      roomRef.current;
+
+    if (
+      !r ||
+      r.hostId !== me.id
+    ) {
+      return;
+    }
+
+    const fresh =
+      (await loadRoom(r.code)) ||
+      r;
+
+    const next = {
+      ...fresh,
+
+      players:
+        fresh.players.filter(
+          (p) =>
+            p.id !== playerId
+        ),
+
+      pendingPlayers:
+        (fresh.pendingPlayers ||
+          []).filter(
+          (p) =>
+            p.id !== playerId
+        ),
+    };
+
+    await saveRoom(next);
+
+    setRoom(next);
+  }
 
   async function startGame() {
-    const r = roomRef.current;
-    const cats = [...selectedCats];
-    if (!cats.length || !r) return;
-    const catKey = pick(cats);
-    const activeItems = shuffleArr(CATEGORIES[catKey].items).slice(0, ACTIVE_POOL_SIZE);
-    const itemName = pick(activeItems);
-    const spy = pick(r.players).id;
-    const { asker, target } = pickNextPair(r.players, null, null);
-    const scores = { ...r.scores };
-    r.players.forEach(p => { if (scores[p.id] === undefined) scores[p.id] = 0; });
-    const next = {
-      ...r, categories: cats, status: "playing", item: { category: catKey, name: itemName }, activeItems, spyId: spy,
-      scores, round: (r.round || 0) + 1, roundDurationSec: Math.max(60, roundMinutes * 60), roundStartedAt: Date.now(),
-      currentAsker: asker, currentTarget: target, votes: {}, endVotes: {}, votingResolved: false,
-      votingStartedAt: null, spyGuess: null, spyGuessCorrect: null, spyGuessStartedAt: null,
+    const r =
+      roomRef.current;
+
+    const cats = [
+      ...selectedCats,
+    ];
+
+    if (!cats.length || !r) {
+      return;
+    }
+
+    const mergedPlayers = [
+      ...r.players,
+      ...(r.pendingPlayers || []),
+    ];
+
+    const catKey =
+      pick(cats);
+
+    const activeItems =
+      shuffleArr(
+        CATEGORIES[catKey].items
+      ).slice(
+        0,
+        ACTIVE_POOL_SIZE
+      );
+
+    const itemName =
+      pick(activeItems);
+
+    const spy =
+      pick(mergedPlayers).id;
+
+    const {
+      asker,
+      target,
+    } = pickNextPair(
+      mergedPlayers,
+      null,
+      null
+    );
+
+    const scores = {
+      ...r.scores,
     };
-    await saveRoom(next); setRoom(next); setScreen("playing");
+
+    mergedPlayers.forEach(
+      (p) => {
+        if (
+          scores[p.id] ===
+          undefined
+        ) {
+          scores[p.id] = 0;
+        }
+      }
+    );
+
+    const next = {
+      ...r,
+
+      players:
+        mergedPlayers,
+
+      pendingPlayers: [],
+
+      categories: cats,
+
+      status: "playing",
+
+      item: {
+        category: catKey,
+        name: itemName,
+      },
+
+      activeItems,
+
+      spyId: spy,
+
+      scores,
+
+      round:
+        (r.round || 0) + 1,
+
+      roundDurationSec:
+        Math.max(
+          60,
+          roundMinutes * 60
+        ),
+
+      roundStartedAt:
+        Date.now(),
+
+      currentAsker:
+        asker,
+
+      currentTarget:
+        target,
+
+      votes: {},
+
+      endVotes: {},
+
+      votingResolved: false,
+
+      votingStartedAt: null,
+
+      spyGuess: null,
+
+      spyGuessCorrect: null,
+
+      spyGuessStartedAt:
+        null,
+    };
+
+    await saveRoom(next);
+
+    setRoom(next);
+
+    setScreen(
+      deriveScreen(
+        next,
+        me.id
+      )
+    );
   }
+
   async function imDone() {
-    const r = roomRef.current;
-    const { asker, target } = pickNextPair(r.players, r.currentAsker, r.currentTarget);
-    const next = { ...r, currentAsker: asker, currentTarget: target };
-    await saveRoom(next); setRoom(next);
+    const r =
+      roomRef.current;
+
+    const {
+      asker,
+      target,
+    } = pickNextPair(
+      r.players,
+      r.currentAsker,
+      r.currentTarget
+    );
+
+    const next = {
+      ...r,
+      currentAsker:
+        asker,
+      currentTarget:
+        target,
+    };
+
+    await saveRoom(next);
+
+    setRoom(next);
   }
+
   async function toggleEndVote() {
-    const fresh = (await loadRoom(roomRef.current.code)) || roomRef.current;
-    const ev = { ...(fresh.endVotes || {}) };
-    if (ev[me.id]) delete ev[me.id]; else ev[me.id] = true;
-    let next = { ...fresh, endVotes: ev };
-    const majority = Math.floor(fresh.players.length / 2) + 1;
-    if (Object.keys(ev).length >= majority && fresh.status === "playing") next = { ...next, status: "voting", votingStartedAt: Date.now() };
-    await saveRoom(next); setRoom(next); if (next.status !== fresh.status) setScreen(next.status);
+    const fresh =
+      (await loadRoom(
+        roomRef.current.code
+      )) ||
+      roomRef.current;
+
+    const ev = {
+      ...(fresh.endVotes || {}),
+    };
+
+    if (ev[me.id]) {
+      delete ev[me.id];
+    } else {
+      ev[me.id] = true;
+    }
+
+    let next = {
+      ...fresh,
+      endVotes: ev,
+    };
+
+    const majority =
+      Math.floor(
+        fresh.players.length / 2
+      ) + 1;
+
+    if (
+      Object.keys(ev).length >=
+        majority &&
+      fresh.status ===
+        "playing"
+    ) {
+      next = {
+        ...next,
+        status: "voting",
+        votingStartedAt:
+          Date.now(),
+      };
+    }
+
+    await saveRoom(next);
+
+    setRoom(next);
+
+    if (
+      next.status !==
+      fresh.status
+    ) {
+      setScreen(next.status);
+    }
   }
-  async function castVote(targetId) {
-    const fresh = (await loadRoom(roomRef.current.code)) || roomRef.current;
-    fresh.votes = { ...(fresh.votes || {}), [me.id]: targetId };
-    await saveRoom(fresh); setRoom(fresh);
+
+  async function castVote(
+    targetId
+  ) {
+    const fresh =
+      (await loadRoom(
+        roomRef.current.code
+      )) ||
+      roomRef.current;
+
+    fresh.votes = {
+      ...(fresh.votes || {}),
+      [me.id]: targetId,
+    };
+
+    await saveRoom(fresh);
+
+    setRoom(fresh);
   }
-  const resolvingRef = useRef(false);
-  const resolveVoting = useCallback(async (force = false) => {
-    if (resolvingRef.current) return;
-    const r = roomRef.current;
-    if (!r || r.status !== "voting" || r.votingResolved) return;
-    if (!force && Object.keys(r.votes || {}).length < r.players.length) return;
-    resolvingRef.current = true;
-    const crew = r.players.filter(p => p.id !== r.spyId);
-    const correctVoters = crew.filter(p => r.votes[p.id] === r.spyId);
-    const majorityCaught = correctVoters.length > crew.length / 2;
-    const scores = { ...r.scores };
-    correctVoters.forEach(p => { scores[p.id] = (scores[p.id] || 0) + 1; });
-    let next;
-    if (majorityCaught) next = { ...r, scores, votingResolved: true, status: "spyGuess", spyGuessStartedAt: Date.now() };
-    else { scores[r.spyId] = (scores[r.spyId] || 0) + 2; next = { ...r, scores, votingResolved: true, status: "reveal" }; }
-    await saveRoom(next); setRoom(next); setScreen(next.status);
-    resolvingRef.current = false;
-  }, []);
+
+  /* ---------------------------------------------------------
+     VOTING
+     --------------------------------------------------------- */
+
+  const resolvingRef =
+    useRef(false);
+
+  const resolveVoting =
+    useCallback(
+      async (force = false) => {
+        if (
+          resolvingRef.current
+        ) {
+          return;
+        }
+
+        const r =
+          roomRef.current;
+
+        if (
+          !r ||
+          r.status !==
+            "voting" ||
+          r.votingResolved
+        ) {
+          return;
+        }
+
+        if (
+          !force &&
+          Object.keys(
+            r.votes || {}
+          ).length <
+            r.players.length
+        ) {
+          return;
+        }
+
+        resolvingRef.current =
+          true;
+
+        const crew =
+          r.players.filter(
+            (p) =>
+              p.id !== r.spyId
+          );
+
+        const correctVoters =
+          crew.filter(
+            (p) =>
+              r.votes[p.id] ===
+              r.spyId
+          );
+
+        const majorityCaught =
+          correctVoters.length >
+          crew.length / 2;
+
+        const scores = {
+          ...r.scores,
+        };
+
+        correctVoters.forEach(
+          (p) => {
+            scores[p.id] =
+              (scores[p.id] ||
+                0) + 1;
+          }
+        );
+
+        let next;
+
+        if (majorityCaught) {
+          next = {
+            ...r,
+            scores,
+            votingResolved: true,
+            status: "spyGuess",
+            spyGuessStartedAt:
+              Date.now(),
+          };
+        } else {
+          scores[r.spyId] =
+            (scores[r.spyId] ||
+              0) + 2;
+
+          next = {
+            ...r,
+            scores,
+            votingResolved: true,
+            status: "reveal",
+          };
+        }
+
+        await saveRoom(next);
+
+        setRoom(next);
+        setScreen(next.status);
+
+        resolvingRef.current =
+          false;
+      },
+      []
+    );
+
   async function spyGuessTimeout() {
-    const r = roomRef.current;
-    if (!r || r.status !== "spyGuess") return;
-    const next = { ...r, spyGuess: null, spyGuessCorrect: false, status: "reveal" };
-    await saveRoom(next); setRoom(next); setScreen("reveal");
+    const r =
+      roomRef.current;
+
+    if (
+      !r ||
+      r.status !==
+        "spyGuess"
+    ) {
+      return;
+    }
+
+    const next = {
+      ...r,
+      spyGuess: null,
+      spyGuessCorrect: false,
+      status: "reveal",
+    };
+
+    await saveRoom(next);
+
+    setRoom(next);
+    setScreen("reveal");
   }
-  async function spySubmitGuess(guessName) {
-    const r = roomRef.current;
-    const correct = guessName === r.item.name;
-    const scores = { ...r.scores };
-    if (correct) scores[r.spyId] = (scores[r.spyId] || 0) + 1;
-    const next = { ...r, scores, spyGuess: guessName, spyGuessCorrect: correct, status: "reveal" };
-    await saveRoom(next); setRoom(next); setScreen("reveal");
+
+  async function spySubmitGuess(
+    guessName
+  ) {
+    const r =
+      roomRef.current;
+
+    const correct =
+      guessName ===
+      r.item.name;
+
+    const scores = {
+      ...r.scores,
+    };
+
+    if (correct) {
+      scores[r.spyId] =
+        (scores[r.spyId] ||
+          0) + 1;
+    }
+
+    const next = {
+      ...r,
+      scores,
+      spyGuess: guessName,
+      spyGuessCorrect:
+        correct,
+      status: "reveal",
+    };
+
+    await saveRoom(next);
+
+    setRoom(next);
+    setScreen("reveal");
   }
-  async function playAgain() { await startGame(); }
+
+  async function playAgain() {
+    await startGame();
+  }
+
   async function backToCategories() {
-    const r = roomRef.current;
-    const next = { ...r, status: "lobby" };
-    await saveRoom(next); setRoom(next); setScreen("lobby");
+    const r =
+      roomRef.current;
+
+    const next = {
+      ...r,
+      status: "lobby",
+    };
+
+    await saveRoom(next);
+
+    setRoom(next);
+    setScreen("lobby");
   }
+
   function leaveRoom() {
-    if (pollRef.current) clearInterval(pollRef.current);
-    setRoom(null); setScreen("home"); setJoinError("");
+    if (
+      pollTimeoutRef.current
+    ) {
+      clearTimeout(
+        pollTimeoutRef.current
+      );
+    }
+
+    pollStopRef.current =
+      true;
+
+    setRoom(null);
+    setScreen("home");
+    setJoinError("");
   }
 
-  useEffect(() => { if (room && room.status === "voting") resolveVoting(); }, [room, resolveVoting]);
+  /* ---------------------------------------------------------
+     TIMERS
+     --------------------------------------------------------- */
 
-  // Hard deadlines: if the 60s voting or spy-guess window runs out, force
-  // the round to move on even if not everyone acted in time.
   useEffect(() => {
-    if (!room || room.status !== "voting" || !room.votingStartedAt) return;
-    const id = setInterval(() => {
-      const rem = computeRemaining(roomRef.current?.votingStartedAt, VOTE_TIMER_SEC);
-      if (rem <= 0 && roomRef.current?.status === "voting") resolveVoting(true);
-    }, 1000);
-    return () => clearInterval(id);
-  }, [room?.status, room?.votingStartedAt, resolveVoting]);
-  useEffect(() => {
-    if (!room || room.status !== "spyGuess" || !room.spyGuessStartedAt) return;
-    const id = setInterval(() => {
-      const rem = computeRemaining(roomRef.current?.spyGuessStartedAt, SPY_GUESS_TIMER_SEC);
-      if (rem <= 0 && roomRef.current?.status === "spyGuess") spyGuessTimeout();
-    }, 1000);
-    return () => clearInterval(id);
-  }, [room?.status, room?.spyGuessStartedAt]);
+    if (
+      room &&
+      room.status ===
+        "voting"
+    ) {
+      resolveVoting();
+    }
+  }, [
+    room,
+    resolveVoting,
+  ]);
 
-  const wide = screen === "playing" || screen === "voting" || screen === "reveal" || screen === "spyGuess";
+  useEffect(() => {
+    if (
+      !room ||
+      room.status !==
+        "voting" ||
+      !room.votingStartedAt
+    ) {
+      return;
+    }
+
+    const id = setInterval(() => {
+      const rem =
+        computeRemaining(
+          roomRef.current
+            ?.votingStartedAt,
+          VOTE_TIMER_SEC
+        );
+
+      if (
+        rem <= 0 &&
+        roomRef.current
+          ?.status ===
+          "voting"
+      ) {
+        resolveVoting(true);
+      }
+    }, 1000);
+
+    return () =>
+      clearInterval(id);
+  }, [
+    room?.status,
+    room?.votingStartedAt,
+    resolveVoting,
+  ]);
+
+  useEffect(() => {
+    if (
+      !room ||
+      room.status !==
+        "spyGuess" ||
+      !room.spyGuessStartedAt
+    ) {
+      return;
+    }
+
+    const id = setInterval(() => {
+      const rem =
+        computeRemaining(
+          roomRef.current
+            ?.spyGuessStartedAt,
+          SPY_GUESS_TIMER_SEC
+        );
+
+      if (
+        rem <= 0 &&
+        roomRef.current
+          ?.status ===
+          "spyGuess"
+      ) {
+        spyGuessTimeout();
+      }
+    }, 1000);
+
+    return () =>
+      clearInterval(id);
+  }, [
+    room?.status,
+    room?.spyGuessStartedAt,
+  ]);
+
+  const wide =
+    screen === "playing" ||
+    screen === "voting" ||
+    screen === "reveal" ||
+    screen === "spyGuess";
 
   return (
-    <div style={{ minHeight: "100vh", background: `radial-gradient(circle at 20% -10%, #1e2733 0%, transparent 45%), radial-gradient(circle at 110% 10%, #1b1917 0%, transparent 40%), ${C.ink}`, color: C.cream, fontFamily: sans, padding: "24px 16px 60px" }}>
-      <div style={{ maxWidth: wide ? 860 : 440, margin: "0 auto" }}>
-        {screen === "home" && <HomeScreen {...{ name, setName, homeTab, setHomeTab, codeInput, setCodeInput, joinError, createRoom, joinRoom }} />}
-        {screen === "lobby" && room && <LobbyScreen {...{ room, me, selectedCats, toggleCat, roundMinutes, setRoundMinutes, startGame, leaveRoom }} />}
-        {screen === "playing" && room && <GameScreen {...{ room, me, imDone, toggleEndVote, leaveRoom }} />}
-        {screen === "voting" && room && <VotingScreen {...{ room, me, castVote, leaveRoom }} />}
-        {screen === "spyGuess" && room && <SpyGuessScreen {...{ room, me, spySubmitGuess, leaveRoom }} />}
-        {screen === "reveal" && room && <RevealScreen {...{ room, me, playAgain, backToCategories, leaveRoom }} />}
+    <>
+      {/* =====================================================
+          MILKYMAMBA 007 INTRO
+          ===================================================== */}
+
+      {show007Intro && (
+        <MilkyMamba007Intro />
+      )}
+
+      {/* =====================================================
+          MAIN APPLICATION
+          ===================================================== */}
+
+      <div
+        style={{
+          minHeight: "100vh",
+
+          background: `
+            radial-gradient(
+              circle at 20% -10%,
+              #1e2733 0%,
+              transparent 45%
+            ),
+            radial-gradient(
+              circle at 110% 10%,
+              #1b1917 0%,
+              transparent 40%
+            ),
+            ${C.ink}
+          `,
+
+          color: C.cream,
+
+          fontFamily: sans,
+
+          padding:
+            "24px 16px 60px",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: wide
+              ? 860
+              : 440,
+
+            margin:
+              "0 auto",
+          }}
+        >
+          {screen ===
+            "home" && (
+            <HomeScreen
+              {...{
+                name,
+                setName,
+                homeTab,
+                setHomeTab,
+                codeInput,
+                setCodeInput,
+                joinError,
+                createRoom,
+                joinRoom,
+              }}
+            />
+          )}
+
+          {screen ===
+            "lobby" &&
+            room && (
+              <LobbyScreen
+                {...{
+                  room,
+                  me,
+                  selectedCats,
+                  toggleCat,
+                  roundMinutes,
+                  setRoundMinutes,
+                  startGame,
+                  kickPlayer,
+                  leaveRoom,
+                }}
+              />
+            )}
+
+          {screen ===
+            "waitingLobby" &&
+            room && (
+              <WaitingLobbyScreen
+                {...{
+                  room,
+                  me,
+                  leaveRoom,
+                }}
+              />
+            )}
+
+          {screen ===
+            "kicked" && (
+            <KickedScreen
+              {...{
+                leaveRoom,
+              }}
+            />
+          )}
+
+          {screen ===
+            "playing" &&
+            room && (
+              <GameScreen
+                {...{
+                  room,
+                  me,
+                  imDone,
+                  toggleEndVote,
+                  leaveRoom,
+                }}
+              />
+            )}
+
+          {screen ===
+            "voting" &&
+            room && (
+              <VotingScreen
+                {...{
+                  room,
+                  me,
+                  castVote,
+                  leaveRoom,
+                }}
+              />
+            )}
+
+          {screen ===
+            "spyGuess" &&
+            room && (
+              <SpyGuessScreen
+                {...{
+                  room,
+                  me,
+                  spySubmitGuess,
+                  leaveRoom,
+                }}
+              />
+            )}
+
+          {screen ===
+            "reveal" &&
+            room && (
+              <RevealScreen
+                {...{
+                  room,
+                  me,
+                  playAgain,
+                  backToCategories,
+                  leaveRoom,
+                }}
+              />
+            )}
+        </div>
+
+        <div
+          style={{
+            textAlign: "center",
+            fontSize: 11,
+            color: C.creamDim,
+            opacity: 0.6,
+            marginTop: 34,
+            letterSpacing:
+              "0.04em",
+          }}
+        >
+          Built by Milkymamba
+        </div>
       </div>
-      <div style={{ textAlign: "center", fontSize: 11, color: C.creamDim, opacity: 0.6, marginTop: 34, letterSpacing: "0.04em" }}>
-        Built by Milkymamba
-      </div>
-    </div>
+    </>
   );
 }
 
-/* ---------------- Home ---------------- */
-function HomeScreen({ name, setName, homeTab, setHomeTab, codeInput, setCodeInput, joinError, createRoom, joinRoom }) {
+/* =========================================================================
+   HOME
+   ========================================================================= */
+
+function HomeScreen({
+  name,
+  setName,
+  homeTab,
+  setHomeTab,
+  codeInput,
+  setCodeInput,
+  joinError,
+  createRoom,
+  joinRoom,
+}) {
   return (
     <>
-      <ViewfinderFrame size={230}><DetectiveArt /></ViewfinderFrame>
-      <div style={{ textAlign: "center", marginTop: 24 }}>
-        <Eyebrow>Case File · Party Game</Eyebrow>
-        <Title>SpyFall</Title>
-        <Sub>One of you doesn't know the secret. Everyone else does. Ask sly questions, read the room, and unmask the spy or bluff your way through as one.</Sub>
+      <ViewfinderFrame size={230}>
+        <SpyOfficeScene />
+      </ViewfinderFrame>
+
+      <div
+        style={{
+          textAlign: "center",
+          marginTop: 24,
+        }}
+      >
+        <Eyebrow>
+          Case File · Party Game
+        </Eyebrow>
+
+        <Title>
+          Spyfall
+        </Title>
+
+        <Sub>
+          One of you doesn't know
+          the secret. Everyone else
+          does. Ask sly questions,
+          read the room, and unmask
+          the spy or bluff your way
+          through as one.
+        </Sub>
       </div>
+
       {!CONFIGURED && (
-        <Card style={{ borderColor: C.blue }}>
-          <b style={{ color: C.blue }}>Supabase not connected yet</b>
-          <p style={{ color: C.creamDim, fontSize: 13, margin: "8px 0 0" }}>Set <code>NEXT_PUBLIC_SUPABASE_URL</code> and <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> in your <code>.env.local</code>.</p>
+        <Card
+          style={{
+            borderColor: C.blue,
+          }}
+        >
+          <b
+            style={{
+              color: C.blue,
+            }}
+          >
+            Supabase not connected yet
+          </b>
+
+          <p
+            style={{
+              color: C.creamDim,
+              fontSize: 13,
+              margin:
+                "8px 0 0",
+            }}
+          >
+            Set{" "}
+            <code>
+              NEXT_PUBLIC_SUPABASE_URL
+            </code>{" "}
+            and{" "}
+            <code>
+              NEXT_PUBLIC_SUPABASE_ANON_KEY
+            </code>{" "}
+            in your{" "}
+            <code>
+              .env.local
+            </code>
+            .
+          </p>
         </Card>
       )}
+
       <Card>
-        <div style={{ display: "flex", background: "rgba(0,0,0,0.3)", borderRadius: 12, padding: 4, marginBottom: 18 }}>
-          {["create", "join"].map(t => (
-            <button key={t} className="press-btn" onClick={() => setHomeTab(t)} style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 9, fontWeight: 700, fontSize: 13, cursor: "pointer", background: homeTab === t ? C.blue : "transparent", color: homeTab === t ? "#0d0d0c" : C.creamDim }}>{t === "create" ? "Create Room" : "Join Room"}</button>
+        <div
+          style={{
+            display: "flex",
+            background:
+              "rgba(0,0,0,0.3)",
+            borderRadius: 12,
+            padding: 4,
+            marginBottom: 18,
+          }}
+        >
+          {[
+            "create",
+            "join",
+          ].map((t) => (
+            <button
+              key={t}
+              className="press-btn"
+              onClick={() =>
+                setHomeTab(t)
+              }
+              style={{
+                flex: 1,
+                padding:
+                  "10px 0",
+                border: "none",
+                borderRadius: 9,
+                fontWeight: 700,
+                fontSize: 13,
+                cursor:
+                  "pointer",
+                background:
+                  homeTab === t
+                    ? C.blue
+                    : "transparent",
+                color:
+                  homeTab === t
+                    ? "#0d0d0c"
+                    : C.creamDim,
+              }}
+            >
+              {t ===
+              "create"
+                ? "Create Room"
+                : "Join Room"}
+            </button>
           ))}
         </div>
-        <label style={labelStyle}>Your name</label>
-        <input style={inputStyle} placeholder="e.g. Sujata" value={name} maxLength={18} onChange={e => setName(e.target.value)} />
-        {homeTab === "join" && (
+
+        <label
+          style={labelStyle}
+        >
+          Your name
+        </label>
+
+        <input
+          style={inputStyle}
+          placeholder="e.g. Sujata"
+          value={name}
+          maxLength={18}
+          onChange={(e) =>
+            setName(
+              e.target.value
+            )
+          }
+        />
+
+        {homeTab ===
+          "join" && (
           <>
-            <label style={labelStyle}>Room code</label>
-            <input style={{ ...inputStyle, textTransform: "uppercase" }} placeholder="e.g. QXTP" maxLength={6} value={codeInput} onChange={e => setCodeInput(e.target.value)} />
+            <label
+              style={labelStyle}
+            >
+              Room code
+            </label>
+
+            <input
+              style={{
+                ...inputStyle,
+                textTransform:
+                  "uppercase",
+              }}
+              placeholder="e.g. QXTP"
+              maxLength={6}
+              value={codeInput}
+              onChange={(e) =>
+                setCodeInput(
+                  e.target.value
+                )
+              }
+            />
           </>
         )}
-        {joinError && <div style={{ color: C.blue, fontSize: 13, margin: "-8px 0 12px" }}>{joinError}</div>}
-        <PrimaryButton onClick={homeTab === "create" ? createRoom : joinRoom}>{homeTab === "create" ? <>Create New Room <ArrowRight size={16} /></> : <>Join Existing Room <ArrowRight size={16} /></>}</PrimaryButton>
+
+        {joinError && (
+          <div
+            style={{
+              color: C.blue,
+              fontSize: 13,
+              margin:
+                "-8px 0 12px",
+            }}
+          >
+            {joinError}
+          </div>
+        )}
+
+        <PrimaryButton
+          onClick={
+            homeTab ===
+            "create"
+              ? createRoom
+              : joinRoom
+          }
+        >
+          {homeTab ===
+          "create" ? (
+            <>
+              Create New Room
+              <ArrowRight
+                size={16}
+              />
+            </>
+          ) : (
+            <>
+              Join Existing Room
+              <ArrowRight
+                size={16}
+              />
+            </>
+          )}
+        </PrimaryButton>
       </Card>
-      <p style={{ fontSize: 11, color: C.creamDim, textAlign: "center", marginTop: 26, lineHeight: 1.6, opacity: 0.8 }}>Welcome to the Game. Kindly don't be a spoiled brat and just play the game. Yours Truly.</p>
+
+      <p
+        style={{
+          fontSize: 11,
+          color: C.creamDim,
+          textAlign: "center",
+          marginTop: 26,
+          lineHeight: 1.6,
+          opacity: 0.8,
+        }}
+      >
+      Welcome to the Game. Don't be a smartass. Yours Truly
+      </p>
     </>
   );
 }
 
-/* ---------------- Lobby ---------------- */
-function LobbyScreen({ room, me, selectedCats, toggleCat, roundMinutes, setRoundMinutes, startGame, leaveRoom }) {
-  const isHost = room.hostId === me.id;
-  const canStart = room.players.length >= 3;
+/* =========================================================================
+   LOBBY
+   ========================================================================= */
+
+function LobbyScreen({
+  room,
+  me,
+  selectedCats,
+  toggleCat,
+  roundMinutes,
+  setRoundMinutes,
+  startGame,
+  kickPlayer,
+  leaveRoom,
+}) {
+  const isHost =
+    room.hostId === me.id;
+
+  const canStart =
+    room.players.length >= 3;
+
+  const pending =
+    room.pendingPlayers || [];
+
   return (
     <>
-      <Eyebrow>Lobby</Eyebrow>
-      <Title>Waiting for players</Title>
+      <Eyebrow>
+        Lobby
+      </Eyebrow>
+
+      <Title>
+        Waiting for players
+      </Title>
+
       <Card>
-        <div style={{ fontFamily: serif, fontSize: 42, fontWeight: 700, letterSpacing: "0.15em", color: C.blue, textAlign: "center", padding: "14px 0" }}>{room.code}</div>
-        <div style={{ fontSize: 12, color: C.creamDim, textAlign: "center", marginBottom: 18 }}>Share this code — friends tap "Join Room" and enter it</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {room.players.map(p => (
-            <PlayerRow key={p.id} player={p} points={room.scores[p.id]} badge={p.id === room.hostId ? "Host" : null} isMe={p.id === me.id} />
-          ))}
+        <div
+          style={{
+            fontFamily: serif,
+            fontSize: 42,
+            fontWeight: 700,
+            letterSpacing:
+              "0.15em",
+            color: C.blue,
+            textAlign: "center",
+            padding:
+              "14px 0",
+          }}
+        >
+          {room.code}
         </div>
-        <div style={{ fontSize: 12, color: C.creamDim, textAlign: "center", marginTop: 14 }}>{room.players.length} player{room.players.length !== 1 ? "s" : ""} in room {canStart ? "" : "· need at least 3 to start"}</div>
+
+        <div
+          style={{
+            fontSize: 12,
+            color: C.creamDim,
+            textAlign: "center",
+            marginBottom: 18,
+          }}
+        >
+          Share this code —
+          friends tap "Join Room"
+          and enter it
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection:
+              "column",
+            gap: 8,
+          }}
+        >
+          {room.players.map(
+            (p) => (
+              <PlayerRow
+                key={p.id}
+                player={p}
+                points={
+                  room.scores[
+                    p.id
+                  ]
+                }
+                badge={
+                  p.id ===
+                  room.hostId
+                    ? "Host"
+                    : null
+                }
+                isMe={
+                  p.id ===
+                  me.id
+                }
+                right={
+                  isHost &&
+                  p.id !==
+                    room.hostId ? (
+                    <button
+                      className="press-btn"
+                      onClick={() =>
+                        kickPlayer(
+                          p.id
+                        )
+                      }
+                      title="Kick player"
+                      style={{
+                        background:
+                          "transparent",
+                        border:
+                          "none",
+                        cursor:
+                          "pointer",
+                        padding: 4,
+                        color:
+                          C.creamDim,
+                        display:
+                          "flex",
+                      }}
+                    >
+                      <UserX
+                        size={16}
+                      />
+                    </button>
+                  ) : null
+                }
+              />
+            )
+          )}
+        </div>
+
+        <div
+          style={{
+            fontSize: 12,
+            color: C.creamDim,
+            textAlign: "center",
+            marginTop: 14,
+          }}
+        >
+          {room.players.length}{" "}
+          player
+          {room.players
+            .length !== 1
+            ? "s"
+            : ""}{" "}
+          in room{" "}
+          {canStart
+            ? ""
+            : "· need at least 3 to start"}
+        </div>
       </Card>
+
+      {pending.length >
+        0 && (
+        <Card>
+          <Eyebrow>
+            <Clock3
+              size={12}
+              style={{
+                verticalAlign:
+                  "-2px",
+                marginRight: 4,
+              }}
+            />
+            Waiting to join
+            next round
+          </Eyebrow>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection:
+                "column",
+              gap: 8,
+            }}
+          >
+            {pending.map(
+              (p) => (
+                <PlayerRow
+                  key={p.id}
+                  player={p}
+                  points={
+                    room.scores[
+                      p.id
+                    ]
+                  }
+                  isMe={
+                    p.id ===
+                    me.id
+                  }
+                  right={
+                    isHost ? (
+                      <button
+                        className="press-btn"
+                        onClick={() =>
+                          kickPlayer(
+                            p.id
+                          )
+                        }
+                        title="Remove player"
+                        style={{
+                          background:
+                            "transparent",
+                          border:
+                            "none",
+                          cursor:
+                            "pointer",
+                          padding: 4,
+                          color:
+                            C.creamDim,
+                          display:
+                            "flex",
+                        }}
+                      >
+                        <UserX
+                          size={16}
+                        />
+                      </button>
+                    ) : null
+                  }
+                />
+              )
+            )}
+          </div>
+        </Card>
+      )}
+
       {isHost ? (
         <Card>
-          <label style={labelStyle}>Categories in play</label>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 18 }}>
-            {CAT_KEYS.map(k => (
-              <div key={k} onClick={() => toggleCat(k)} style={{ border: `1px solid ${selectedCats.has(k) ? C.blue : C.line}`, borderRadius: 10, padding: "10px 12px", cursor: "pointer", fontSize: 13, background: selectedCats.has(k) ? "rgba(85,136,201,0.14)" : "rgba(0,0,0,0.2)" }}>{CATEGORIES[k].icon} {CATEGORIES[k].label}</div>
-            ))}
+          <label
+            style={labelStyle}
+          >
+            Categories in play
+          </label>
+
+          <div
+            style={{
+              display:
+                "grid",
+              gridTemplateColumns:
+                "1fr 1fr",
+              gap: 8,
+              marginBottom: 18,
+            }}
+          >
+            {CAT_KEYS.map(
+              (k) => (
+                <div
+                  key={k}
+                  onClick={() =>
+                    toggleCat(k)
+                  }
+                  style={{
+                    border: `1px solid ${
+                      selectedCats.has(
+                        k
+                      )
+                        ? C.blue
+                        : C.line
+                    }`,
+                    borderRadius: 10,
+                    padding:
+                      "10px 12px",
+                    cursor:
+                      "pointer",
+                    fontSize: 13,
+                    background:
+                      selectedCats.has(
+                        k
+                      )
+                        ? "rgba(85,136,201,0.14)"
+                        : "rgba(0,0,0,0.2)",
+                  }}
+                >
+                  {
+                    CATEGORIES[k]
+                      .icon
+                  }{" "}
+                  {
+                    CATEGORIES[k]
+                      .label
+                  }
+                </div>
+              )
+            )}
           </div>
-          <label style={labelStyle}>Round length (minutes) — last 2 min are open questioning</label>
-          <input type="number" min={3} max={30} value={roundMinutes} onChange={e => setRoundMinutes(Math.max(3, Math.min(30, Number(e.target.value) || 8)))} style={inputStyle} />
-          <PrimaryButton onClick={startGame} disabled={!canStart || selectedCats.size === 0}>Start Game <ArrowRight size={16} /></PrimaryButton>
+
+          <label
+            style={labelStyle}
+          >
+            Round length
+            (minutes) — last 2 min
+            are open questioning
+          </label>
+
+          <input
+            type="number"
+            min={3}
+            max={30}
+            value={
+              roundMinutes
+            }
+            onChange={(e) =>
+              setRoundMinutes(
+                Math.max(
+                  3,
+                  Math.min(
+                    30,
+                    Number(
+                      e.target
+                        .value
+                    ) || 8
+                  )
+                )
+              )
+            }
+            style={inputStyle}
+          />
+
+          <PrimaryButton
+            onClick={startGame}
+            disabled={
+              !canStart ||
+              selectedCats.size ===
+                0
+            }
+          >
+            Start Game{" "}
+            <ArrowRight
+              size={16}
+            />
+          </PrimaryButton>
         </Card>
       ) : (
-        <Card><Sub>Waiting for the host to start the game…</Sub></Card>
+        <Card>
+          <Sub>
+            Waiting for the host
+            to start the game…
+          </Sub>
+        </Card>
       )}
-      <GhostButton onClick={leaveRoom}><LogOut size={15} /> Leave room</GhostButton>
+
+      <GhostButton
+        onClick={leaveRoom}
+      >
+        <LogOut
+          size={15}
+        />{" "}
+        Leave room
+      </GhostButton>
     </>
   );
 }
 
-/* ---------------- Turn panel (side) ---------------- */
-function TurnPanel({ room, imDone, toggleEndVote, openMode }) {
-  const asker = room.players.find(p => p.id === room.currentAsker);
-  const target = room.players.find(p => p.id === room.currentTarget);
-  const endCount = Object.keys(room.endVotes || {}).length;
-  const endMajority = Math.floor(room.players.length / 2) + 1;
-  const iVotedEnd = !!(room.endVotes || {})[room.__meId];
-  const iAmAsker = room.__meId === room.currentAsker;
+/* =========================================================================
+   WAITING LOBBY
+   ========================================================================= */
+
+function WaitingLobbyScreen({
+  room,
+  me,
+  leaveRoom,
+}) {
+  return (
+    <>
+      <Eyebrow>
+        Lobby
+      </Eyebrow>
+
+      <Title>
+        You're in — hang tight
+      </Title>
+
+      <Sub>
+        Room{" "}
+        <b
+          style={{
+            color: C.cream,
+          }}
+        >
+          {room.code}
+        </b>{" "}
+        is mid-round right now.
+        You'll automatically join
+        as soon as it wraps up and
+        the host starts the next
+        one — no need to do
+        anything.
+      </Sub>
+
+      <Card>
+        <Eyebrow>
+          Currently playing
+          (Round {room.round})
+        </Eyebrow>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection:
+              "column",
+            gap: 8,
+          }}
+        >
+          {room.players.map(
+            (p) => (
+              <PlayerRow
+                key={p.id}
+                player={p}
+                points={
+                  room.scores[
+                    p.id
+                  ]
+                }
+                badge={
+                  p.id ===
+                  room.hostId
+                    ? "Host"
+                    : null
+                }
+              />
+            )
+          )}
+        </div>
+      </Card>
+
+      <Card>
+        <Eyebrow>
+          <Clock3
+            size={12}
+            style={{
+              verticalAlign:
+                "-2px",
+              marginRight: 4,
+            }}
+          />
+          Waiting with you
+        </Eyebrow>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection:
+              "column",
+            gap: 8,
+          }}
+        >
+          {(room.pendingPlayers ||
+            []).map((p) => (
+            <PlayerRow
+              key={p.id}
+              player={p}
+              points={
+                room.scores[
+                  p.id
+                ]
+              }
+              isMe={
+                p.id === me.id
+              }
+            />
+          ))}
+        </div>
+      </Card>
+
+      <GhostButton
+        onClick={leaveRoom}
+      >
+        <LogOut
+          size={15}
+        />{" "}
+        Leave room
+      </GhostButton>
+    </>
+  );
+}
+
+/* =========================================================================
+   KICKED
+   ========================================================================= */
+
+function KickedScreen({
+  leaveRoom,
+}) {
+  return (
+    <>
+      <Eyebrow>
+        Case File · Closed
+      </Eyebrow>
+
+      <Title>
+        You've been removed
+      </Title>
+
+      <Card>
+        <Sub>
+          The host removed you
+          from this room. You can
+          head back and join or
+          create a different one.
+        </Sub>
+      </Card>
+
+      <PrimaryButton
+        onClick={leaveRoom}
+      >
+        Back to home{" "}
+        <ArrowRight
+          size={16}
+        />
+      </PrimaryButton>
+    </>
+  );
+}
+
+/* =========================================================================
+   TURN PANEL
+   ========================================================================= */
+
+function TurnPanel({
+  room,
+  imDone,
+  toggleEndVote,
+  openMode,
+}) {
+  const asker =
+    room.players.find(
+      (p) =>
+        p.id ===
+        room.currentAsker
+    );
+
+  const target =
+    room.players.find(
+      (p) =>
+        p.id ===
+        room.currentTarget
+    );
+
+  const endCount =
+    Object.keys(
+      room.endVotes || {}
+    ).length;
+
+  const endMajority =
+    Math.floor(
+      room.players.length /
+        2
+    ) + 1;
+
+  const iVotedEnd =
+    !!(
+      room.endVotes || {}
+    )[room.__meId];
+
+  const iAmAsker =
+    room.__meId ===
+    room.currentAsker;
+
   return (
     <Card>
-      <Eyebrow>Turn</Eyebrow>
+      <Eyebrow>
+        Turn
+      </Eyebrow>
+
       {openMode ? (
-        <div style={{ textAlign: "center", padding: "10px 0 4px" }}>
-          <Radio size={22} color={C.blueSoft} />
-          <div style={{ fontSize: 13, color: C.creamDim, marginTop: 8 }}>Open questioning — anyone can ask anyone.</div>
+        <div
+          style={{
+            textAlign:
+              "center",
+            padding:
+              "10px 0 4px",
+          }}
+        >
+          <Radio
+            size={22}
+            color={
+              C.blueSoft
+            }
+          />
+
+          <div
+            style={{
+              fontSize: 13,
+              color:
+                C.creamDim,
+              marginTop: 8,
+            }}
+          >
+            Open questioning
+            — anyone can ask
+            anyone.
+          </div>
         </div>
       ) : (
         <>
-          <div className="turn-card" style={{ marginBottom: 18 }}>
+          <div
+            className="turn-card"
+            style={{
+              marginBottom: 18,
+            }}
+          >
             <div className="turn-side">
-              <Avatar name={asker?.name} size={54} ring={C.blue} />
-              <span className="name" style={{ fontSize: 13, fontWeight: 700, color: C.cream }}>{asker?.name}{iAmAsker ? " (you)" : ""}</span>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: C.blue }}>Asking</span>
+              <Avatar
+                name={
+                  asker?.name
+                }
+                size={54}
+                ring={C.blue}
+              />
+
+              <span
+                className="name"
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color:
+                    C.cream,
+                }}
+              >
+                {asker?.name}
+                {iAmAsker
+                  ? " (you)"
+                  : ""}
+              </span>
+
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing:
+                    "0.08em",
+                  textTransform:
+                    "uppercase",
+                  color:
+                    C.blue,
+                }}
+              >
+                Asking
+              </span>
             </div>
-            <ArrowRight size={22} color={C.blueSoft} style={{ flexShrink: 0 }} />
+
+            <ArrowRight
+              size={22}
+              color={
+                C.blueSoft
+              }
+              style={{
+                flexShrink: 0,
+              }}
+            />
+
             <div className="turn-side">
-              <Avatar name={target?.name} size={54} ring={C.blueSoft} />
-              <span className="name" style={{ fontSize: 13, fontWeight: 700, color: C.cream }}>{target?.name}</span>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: C.blueSoft }}>Answering</span>
+              <Avatar
+                name={
+                  target?.name
+                }
+                size={54}
+                ring={
+                  C.blueSoft
+                }
+              />
+
+              <span
+                className="name"
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color:
+                    C.cream,
+                }}
+              >
+                {target?.name}
+              </span>
+
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing:
+                    "0.08em",
+                  textTransform:
+                    "uppercase",
+                  color:
+                    C.blueSoft,
+                }}
+              >
+                Answering
+              </span>
             </div>
           </div>
+
           {iAmAsker ? (
-            <PrimaryButton onClick={imDone}>I'm done — next pair <ArrowRight size={16} /></PrimaryButton>
+            <PrimaryButton
+              onClick={imDone}
+            >
+              I'm done — next
+              pair{" "}
+              <ArrowRight
+                size={16}
+              />
+            </PrimaryButton>
           ) : (
-            <div style={{ textAlign: "center", fontSize: 13, color: C.creamDim, padding: "13px 0", border: `1px dashed ${C.line}`, borderRadius: 12 }}>
-              Waiting for <b style={{ color: C.cream }}>{asker?.name}</b> to finish asking…
+            <div
+              style={{
+                textAlign:
+                  "center",
+                fontSize: 13,
+                color:
+                  C.creamDim,
+                padding:
+                  "13px 0",
+                border: `1px dashed ${C.line}`,
+                borderRadius: 12,
+              }}
+            >
+              Waiting for{" "}
+              <b
+                style={{
+                  color:
+                    C.cream,
+                }}
+              >
+                {asker?.name}
+              </b>{" "}
+              to finish asking…
             </div>
           )}
         </>
       )}
-      <div style={{ marginTop: 12 }}>
-        <GhostButton onClick={toggleEndVote} active={iVotedEnd}>
-          <Sparkles size={15} /> {iVotedEnd ? "Voted to end round" : "Vote to end round"} · {endCount}/{room.players.length} (need {endMajority})
+
+      <div
+        style={{
+          marginTop: 12,
+        }}
+      >
+        <GhostButton
+          onClick={
+            toggleEndVote
+          }
+          active={iVotedEnd}
+        >
+          <Sparkles
+            size={15}
+          />{" "}
+          {iVotedEnd
+            ? "Voted to end round"
+            : "Vote to end round"}{" "}
+          · {endCount}/
+          {room.players.length}{" "}
+          (need {endMajority})
         </GhostButton>
       </div>
     </Card>
   );
 }
 
-/* Shows the round's 30-item pool to everyone, including during voting —
-   so the crew's questions and the spy's cover both stay grounded in a
-   pool everyone can see, not just what the spy is privately marking up. */
-function ItemsInPlayPanel({ room, cat }) {
-  const items = room.activeItems && room.activeItems.length ? room.activeItems : cat.items;
+/* =========================================================================
+   ITEMS IN PLAY
+   ========================================================================= */
+
+function ItemsInPlayPanel({
+  room,
+  cat,
+}) {
+  const items =
+    room.activeItems &&
+    room.activeItems.length
+      ? room.activeItems
+      : cat.items;
+
   return (
     <Card>
-      <Eyebrow>{cat.icon} Items in play this round ({items.length})</Eyebrow>
+      <Eyebrow>
+        {cat.icon} Items in play
+        this round (
+        {items.length})
+      </Eyebrow>
+
       <div className="chip-grid">
-        {items.map(it => (
-          <span key={it} style={{ padding: "6px 11px", borderRadius: 999, fontSize: 12.5, background: "rgba(0,0,0,0.22)", border: `1px solid ${C.line}`, color: C.creamDim }}>{it}</span>
+        {items.map((it) => (
+          <span
+            key={it}
+            style={{
+              padding:
+                "6px 11px",
+              borderRadius: 999,
+              fontSize: 12.5,
+              background:
+                "rgba(0,0,0,0.22)",
+              border: `1px solid ${C.line}`,
+              color:
+                C.creamDim,
+            }}
+          >
+            {it}
+          </span>
         ))}
       </div>
     </Card>
   );
 }
 
-/* ---------------- Game screen ---------------- */
-function GameScreen({ room, me, imDone, toggleEndVote, leaveRoom }) {
-  const iAmSpy = room.spyId === me.id;
-  const cat = CATEGORIES[room.item.category];
-  const poolItems = room.activeItems && room.activeItems.length ? room.activeItems : cat.items;
-  const openMode = useOpenMode(room.roundStartedAt, room.roundDurationSec);
+/* =========================================================================
+   GAME SCREEN
+   ========================================================================= */
 
-  const [marks, setMarks] = useState({});
-  useEffect(() => { setMarks({}); }, [room.round]);
-  function cycleMark(itemName) {
-    setMarks(m => { const cur = m[itemName]; const next = cur === "tick" ? "cross" : cur === "cross" ? undefined : "tick"; return { ...m, [itemName]: next }; });
+function GameScreen({
+  room,
+  me,
+  imDone,
+  toggleEndVote,
+  leaveRoom,
+}) {
+  const iAmSpy =
+    room.spyId === me.id;
+
+  const cat =
+    CATEGORIES[
+      room.item.category
+    ];
+
+  const poolItems =
+    room.activeItems &&
+    room.activeItems.length
+      ? room.activeItems
+      : cat.items;
+
+  const openMode =
+    useOpenMode(
+      room.roundStartedAt,
+      room.roundDurationSec
+    );
+
+  const [marks, setMarks] =
+    useState({});
+
+  useEffect(() => {
+    setMarks({});
+  }, [room.round]);
+
+  function cycleMark(
+    itemName
+  ) {
+    setMarks((m) => {
+      const cur =
+        m[itemName];
+
+      const next =
+        cur === "tick"
+          ? "cross"
+          : cur === "cross"
+          ? undefined
+          : "tick";
+
+      return {
+        ...m,
+        [itemName]: next,
+      };
+    });
   }
-  const roomWithMe = { ...room, __meId: me.id };
+
+  const roomWithMe = {
+    ...room,
+    __meId: me.id,
+  };
 
   return (
     <>
-      <Eyebrow>Round {room.round} · In progress</Eyebrow>
-      <Title>{openMode ? "Open questioning" : "Ask around the circle"}</Title>
+      <Eyebrow>
+        Round {room.round} ·
+        In progress
+      </Eyebrow>
 
-      <Card style={{ display: "flex", justifyContent: "center", padding: "18px 20px" }}>
-        <WallClock startedAt={room.roundStartedAt} durationSec={room.roundDurationSec} />
+      <Title>
+        {openMode
+          ? "Open questioning"
+          : "Ask around the circle"}
+      </Title>
+
+      <Card
+        style={{
+          display: "flex",
+          justifyContent:
+            "center",
+          padding:
+            "18px 20px",
+        }}
+      >
+        <WallClock
+          startedAt={
+            room.roundStartedAt
+          }
+          durationSec={
+            room.roundDurationSec
+          }
+        />
       </Card>
 
       {openMode && (
-        <div style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(85,136,201,0.14)", border: `1px solid ${C.blue}`, borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
-          <Bell size={18} color={C.blue} />
-          <span style={{ fontSize: 13, color: C.cream }}><b style={{ color: C.blue }}>Final <CountdownLabel startedAt={room.roundStartedAt} durationSec={room.roundDurationSec} /></b> — anyone can ask anyone now!</span>
+        <div
+          style={{
+            display: "flex",
+            alignItems:
+              "center",
+            gap: 10,
+            background:
+              "rgba(85,136,201,0.14)",
+            border: `1px solid ${C.blue}`,
+            borderRadius: 12,
+            padding:
+              "12px 14px",
+            marginBottom: 16,
+          }}
+        >
+          <Bell
+            size={18}
+            color={C.blue}
+          />
+
+          <span
+            style={{
+              fontSize: 13,
+              color:
+                C.cream,
+            }}
+          >
+            <b
+              style={{
+                color:
+                  C.blue,
+              }}
+            >
+              Final{" "}
+              <CountdownLabel
+                startedAt={
+                  room.roundStartedAt
+                }
+                durationSec={
+                  room.roundDurationSec
+                }
+              />
+            </b>{" "}
+            — anyone can ask
+            anyone now!
+          </span>
         </div>
       )}
 
       <div className="game-grid">
         <div>
-          <Card style={{ textAlign: "center", padding: "26px 20px", background: iAmSpy ? `linear-gradient(180deg, rgba(85,136,201,0.16), ${C.panel2})` : `linear-gradient(180deg, rgba(147,183,222,0.12), ${C.panel2})`, borderColor: iAmSpy ? "rgba(85,136,201,0.5)" : "rgba(147,183,222,0.4)" }}>
+          <Card
+            style={{
+              textAlign:
+                "center",
+              padding:
+                "26px 20px",
+              background:
+                iAmSpy
+                  ? `linear-gradient(180deg, rgba(85,136,201,0.16), ${C.panel2})`
+                  : `linear-gradient(180deg, rgba(147,183,222,0.12), ${C.panel2})`,
+              borderColor:
+                iAmSpy
+                  ? "rgba(85,136,201,0.5)"
+                  : "rgba(147,183,222,0.4)",
+            }}
+          >
             {iAmSpy ? (
               <>
-                <div style={{ width: 66, height: 66, borderRadius: 16, margin: "0 auto 12px", background: C.blue, display: "flex", alignItems: "center", justifyContent: "center" }}><Eye size={26} color="#0d0d0c" /></div>
-                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>You're the Spy</div>
-                <div style={{ color: C.creamDim, fontSize: 13, marginBottom: 16 }}>Category: <b style={{ color: C.cream }}>{cat.label}</b>. Tap items to mark them in or out.</div>
-                <div className="chip-grid" style={{ justifyContent: "center" }}>
-                  {poolItems.map(it => {
-                    const mark = marks[it];
-                    return (
-                      <div key={it} onClick={() => cycleMark(it)} className="press-btn" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 11px", borderRadius: 999, cursor: "pointer", background: mark === "tick" ? "rgba(85,136,201,0.22)" : mark === "cross" ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.22)", border: `1px solid ${mark === "tick" ? C.blue : mark === "cross" ? C.creamDim : C.line}` }}>
-                        {mark === "tick" && <Check size={13} color={C.blue} />}
-                        {mark === "cross" && <X size={13} color={C.creamDim} />}
-                        <span style={{ fontSize: 12.5, color: mark === "cross" ? C.creamDim : C.cream, textDecoration: mark === "cross" ? "line-through" : "none" }}>{it}</span>
-                      </div>
-                    );
-                  })}
+                <div
+                  style={{
+                    width: 66,
+                    height: 66,
+                    borderRadius: 16,
+                    margin:
+                      "0 auto 12px",
+                    background:
+                      C.blue,
+                    display:
+                      "flex",
+                    alignItems:
+                      "center",
+                    justifyContent:
+                      "center",
+                  }}
+                >
+                  <Eye
+                    size={26}
+                    color="#0d0d0c"
+                  />
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 700,
+                    marginBottom: 4,
+                  }}
+                >
+                  You're the Spy
+                </div>
+
+                <div
+                  style={{
+                    color:
+                      C.creamDim,
+                    fontSize: 13,
+                    marginBottom: 16,
+                  }}
+                >
+                  Category:{" "}
+                  <b
+                    style={{
+                      color:
+                        C.cream,
+                    }}
+                  >
+                    {cat.label}
+                  </b>
+                  . Tap items to
+                  mark them in or
+                  out.
+                </div>
+
+                <div
+                  className="chip-grid"
+                  style={{
+                    justifyContent:
+                      "center",
+                  }}
+                >
+                  {poolItems.map(
+                    (it) => {
+                      const mark =
+                        marks[it];
+
+                      return (
+                        <div
+                          key={it}
+                          onClick={() =>
+                            cycleMark(
+                              it
+                            )
+                          }
+                          className="press-btn"
+                          style={{
+                            display:
+                              "inline-flex",
+                            alignItems:
+                              "center",
+                            gap: 6,
+                            padding:
+                              "7px 11px",
+                            borderRadius: 999,
+                            cursor:
+                              "pointer",
+                            background:
+                              mark ===
+                              "tick"
+                                ? "rgba(85,136,201,0.22)"
+                                : mark ===
+                                  "cross"
+                                ? "rgba(0,0,0,0.3)"
+                                : "rgba(0,0,0,0.22)",
+                            border: `1px solid ${
+                              mark ===
+                              "tick"
+                                ? C.blue
+                                : mark ===
+                                  "cross"
+                                ? C.creamDim
+                                : C.line
+                            }`,
+                          }}
+                        >
+                          {mark ===
+                            "tick" && (
+                            <Check
+                              size={
+                                13
+                              }
+                              color={
+                                C.blue
+                              }
+                            />
+                          )}
+
+                          {mark ===
+                            "cross" && (
+                            <X
+                              size={
+                                13
+                              }
+                              color={
+                                C.creamDim
+                              }
+                            />
+                          )}
+
+                          <span
+                            style={{
+                              fontSize:
+                                12.5,
+                              color:
+                                mark ===
+                                "cross"
+                                  ? C.creamDim
+                                  : C.cream,
+                              textDecoration:
+                                mark ===
+                                "cross"
+                                  ? "line-through"
+                                  : "none",
+                            }}
+                          >
+                            {it}
+                          </span>
+                        </div>
+                      );
+                    }
+                  )}
                 </div>
               </>
             ) : (
               <>
-                <div style={{ width: 66, height: 66, borderRadius: 16, margin: "0 auto 12px", background: C.blueSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>{cat.icon}</div>
-                <Eyebrow>{cat.label}</Eyebrow>
-                <div style={{ fontSize: 24, fontWeight: 700 }}>{room.item.name}</div>
-                <Sub>One player at the table doesn't know this. Ask questions that prove you know it — without saying it outright.</Sub>
+                <div
+                  style={{
+                    width: 66,
+                    height: 66,
+                    borderRadius: 16,
+                    margin:
+                      "0 auto 12px",
+                    background:
+                      C.blueSoft,
+                    display:
+                      "flex",
+                    alignItems:
+                      "center",
+                    justifyContent:
+                      "center",
+                    fontSize: 26,
+                  }}
+                >
+                  {cat.icon}
+                </div>
+
+                <Eyebrow>
+                  {cat.label}
+                </Eyebrow>
+
+                <div
+                  style={{
+                    fontSize: 24,
+                    fontWeight: 700,
+                  }}
+                >
+                  {room.item.name}
+                </div>
+
+                <Sub>
+                  One player at the
+                  table doesn't know
+                  this. Ask questions
+                  that prove you know
+                  it — without saying
+                  it outright.
+                </Sub>
               </>
             )}
           </Card>
-          {!iAmSpy && <ItemsInPlayPanel room={room} cat={cat} />}
+
+          {!iAmSpy && (
+            <ItemsInPlayPanel
+              room={room}
+              cat={cat}
+            />
+          )}
         </div>
 
         <div>
-          <TurnPanel room={roomWithMe} imDone={imDone} toggleEndVote={toggleEndVote} openMode={openMode} />
+          <TurnPanel
+            room={roomWithMe}
+            imDone={imDone}
+            toggleEndVote={
+              toggleEndVote
+            }
+            openMode={openMode}
+          />
+
           <Card>
-            <Eyebrow>Table</Eyebrow>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {room.players.map(p => (
-                <PlayerRow key={p.id} player={p} points={room.scores[p.id]}
-                  badge={!openMode && p.id === room.currentAsker ? "Asking" : !openMode && p.id === room.currentTarget ? "Answering" : null}
-                  badgeColor={p.id === room.currentAsker ? C.blue : C.blueSoft}
-                  highlight={!openMode && (p.id === room.currentAsker || p.id === room.currentTarget)}
-                  isMe={p.id === me.id} />
-              ))}
+            <Eyebrow>
+              Table
+            </Eyebrow>
+
+            <div
+              style={{
+                display:
+                  "flex",
+                flexDirection:
+                  "column",
+                gap: 8,
+              }}
+            >
+              {room.players.map(
+                (p) => (
+                  <PlayerRow
+                    key={p.id}
+                    player={p}
+                    points={
+                      room.scores[
+                        p.id
+                      ]
+                    }
+                    badge={
+                      !openMode &&
+                      p.id ===
+                        room.currentAsker
+                        ? "Asking"
+                        : !openMode &&
+                          p.id ===
+                            room.currentTarget
+                        ? "Answering"
+                        : null
+                    }
+                    badgeColor={
+                      p.id ===
+                      room.currentAsker
+                        ? C.blue
+                        : C.blueSoft
+                    }
+                    highlight={
+                      !openMode &&
+                      (p.id ===
+                        room.currentAsker ||
+                        p.id ===
+                          room.currentTarget)
+                    }
+                    isMe={
+                      p.id ===
+                      me.id
+                    }
+                  />
+                )
+              )}
             </div>
           </Card>
         </div>
       </div>
-      <GhostButton onClick={leaveRoom}><LogOut size={15} /> Leave room</GhostButton>
+
+      <GhostButton
+        onClick={leaveRoom}
+      >
+        <LogOut
+          size={15}
+        />{" "}
+        Leave room
+      </GhostButton>
     </>
   );
 }
 
-/* ---------------- Voting ---------------- */
-function VotingScreen({ room, me, castVote, leaveRoom }) {
-  const votes = room.votes || {};
-  const totalVoted = Object.keys(votes).length;
-  const myVote = votes[me.id];
-  const cat = CATEGORIES[room.item.category];
+/* =========================================================================
+   VOTING
+   ========================================================================= */
+
+function VotingScreen({
+  room,
+  me,
+  castVote,
+  leaveRoom,
+}) {
+  const votes =
+    room.votes || {};
+
+  const totalVoted =
+    Object.keys(votes)
+      .length;
+
+  const myVote =
+    votes[me.id];
+
+  const cat =
+    CATEGORIES[
+      room.item.category
+    ];
+
   return (
     <>
-      <Eyebrow>Round {room.round} · Voting</Eyebrow>
-      <Title>Who's the spy?</Title>
-      <Sub>Guess whoever you like — you don't need to agree with the table. {totalVoted}/{room.players.length} have voted. The spy stays hidden until everyone's in.</Sub>
-      <Card style={{ display: "flex", justifyContent: "center", padding: "16px 20px" }}>
-        <WallClock startedAt={room.votingStartedAt} durationSec={VOTE_TIMER_SEC} size={92} />
+      <Eyebrow>
+        Round {room.round} ·
+        Voting
+      </Eyebrow>
+
+      <Title>
+        Who's the spy?
+      </Title>
+
+      <Sub>
+        Guess whoever you like
+        — you don't need to agree
+        with the table.{" "}
+        {totalVoted}/
+        {room.players.length}{" "}
+        have voted. The spy stays
+        hidden until everyone's
+        in.
+      </Sub>
+
+      <Card
+        style={{
+          display: "flex",
+          justifyContent:
+            "center",
+          padding:
+            "16px 20px",
+        }}
+      >
+        <WallClock
+          startedAt={
+            room.votingStartedAt
+          }
+          durationSec={
+            VOTE_TIMER_SEC
+          }
+          size={92}
+        />
       </Card>
+
       <Card>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-          {room.players.map(p => (
-            <PlayerRow key={p.id} player={p} points={room.scores[p.id]} onClick={() => castVote(p.id)} highlight={myVote === p.id}
-              badge={myVote === p.id ? "Your guess" : null} badgeColor={C.blue} isMe={p.id === me.id} />
-          ))}
+        <div
+          style={{
+            display:
+              "flex",
+            flexDirection:
+              "column",
+            gap: 8,
+            marginBottom: 16,
+          }}
+        >
+          {room.players.map(
+            (p) => (
+              <PlayerRow
+                key={p.id}
+                player={p}
+                points={
+                  room.scores[
+                    p.id
+                  ]
+                }
+                onClick={() =>
+                  castVote(
+                    p.id
+                  )
+                }
+                highlight={
+                  myVote ===
+                  p.id
+                }
+                badge={
+                  myVote ===
+                  p.id
+                    ? "Your guess"
+                    : null
+                }
+                badgeColor={
+                  C.blue
+                }
+                isMe={
+                  p.id ===
+                  me.id
+                }
+              />
+            )
+          )}
         </div>
-        <div style={{ textAlign: "center", fontSize: 13, color: C.creamDim }}>{totalVoted < room.players.length ? `Waiting on ${room.players.length - totalVoted} more vote${room.players.length - totalVoted !== 1 ? "s" : ""}…` : "Everyone's voted — revealing…"}</div>
+
+        <div
+          style={{
+            textAlign:
+              "center",
+            fontSize: 13,
+            color:
+              C.creamDim,
+          }}
+        >
+          {totalVoted <
+          room.players.length
+            ? `Waiting on ${
+                room.players.length -
+                totalVoted
+              } more vote${
+                room.players.length -
+                  totalVoted !==
+                1
+                  ? "s"
+                  : ""
+              }…`
+            : "Everyone's voted — revealing…"}
+        </div>
       </Card>
-      <ItemsInPlayPanel room={room} cat={cat} />
-      <GhostButton onClick={leaveRoom}><LogOut size={15} /> Leave room</GhostButton>
+
+      <ItemsInPlayPanel
+        room={room}
+        cat={cat}
+      />
+
+      <GhostButton
+        onClick={leaveRoom}
+      >
+        <LogOut
+          size={15}
+        />{" "}
+        Leave room
+      </GhostButton>
     </>
   );
 }
 
-/* ---------------- Spy guess ---------------- */
-function SpyGuessScreen({ room, me, spySubmitGuess, leaveRoom }) {
-  const iAmSpy = room.spyId === me.id;
-  const cat = CATEGORIES[room.item.category];
-  const poolItems = room.activeItems && room.activeItems.length ? room.activeItems : cat.items;
+/* =========================================================================
+   SPY GUESS
+   ========================================================================= */
+
+function SpyGuessScreen({
+  room,
+  me,
+  spySubmitGuess,
+  leaveRoom,
+}) {
+  const iAmSpy =
+    room.spyId === me.id;
+
+  const cat =
+    CATEGORIES[
+      room.item.category
+    ];
+
+  const poolItems =
+    room.activeItems &&
+    room.activeItems.length
+      ? room.activeItems
+      : cat.items;
+
   if (!iAmSpy) {
     return (
       <>
-        <Eyebrow>Round {room.round} · Majority caught the spy</Eyebrow>
-        <Title>The spy gets one guess</Title>
-        <Card style={{ display: "flex", justifyContent: "center", padding: "16px 20px" }}>
-          <WallClock startedAt={room.spyGuessStartedAt} durationSec={SPY_GUESS_TIMER_SEC} size={92} />
+        <Eyebrow>
+          Round {room.round} ·
+          Majority caught the spy
+        </Eyebrow>
+
+        <Title>
+          The spy gets one guess
+        </Title>
+
+        <Card
+          style={{
+            display: "flex",
+            justifyContent:
+              "center",
+            padding:
+              "16px 20px",
+          }}
+        >
+          <WallClock
+            startedAt={
+              room.spyGuessStartedAt
+            }
+            durationSec={
+              SPY_GUESS_TIMER_SEC
+            }
+            size={92}
+          />
         </Card>
-        <Card><Sub>The table found the spy. They now get one shot at naming the secret {cat.label.toLowerCase()} item for a consolation point. Hang tight…</Sub></Card>
-        <ItemsInPlayPanel room={room} cat={cat} />
-        <GhostButton onClick={leaveRoom}><LogOut size={15} /> Leave room</GhostButton>
+
+        <Card>
+          <Sub>
+            The table found the
+            spy. They now get one
+            shot at naming the
+            secret{" "}
+            {cat.label.toLowerCase()}{" "}
+            item for a consolation
+            point. Hang tight…
+          </Sub>
+        </Card>
+
+        <ItemsInPlayPanel
+          room={room}
+          cat={cat}
+        />
+
+        <GhostButton
+          onClick={leaveRoom}
+        >
+          <LogOut
+            size={15}
+          />{" "}
+          Leave room
+        </GhostButton>
       </>
     );
   }
+
   return (
     <>
-      <Eyebrow>Round {room.round} · You were caught</Eyebrow>
-      <Title>Last chance — name the item</Title>
-      <Sub>The table caught you. Pick what you think the secret {cat.label.toLowerCase()} item was — get it right for 1 point. You have 60 seconds.</Sub>
-      <Card style={{ display: "flex", justifyContent: "center", padding: "16px 20px" }}>
-        <WallClock startedAt={room.spyGuessStartedAt} durationSec={SPY_GUESS_TIMER_SEC} size={92} />
+      <Eyebrow>
+        Round {room.round} ·
+        You were caught
+      </Eyebrow>
+
+      <Title>
+        Last chance — name the
+        item
+      </Title>
+
+      <Sub>
+        The table caught you. Pick
+        what you think the secret{" "}
+        {cat.label.toLowerCase()}{" "}
+        item was — get it right
+        for 1 point. You have 60
+        seconds.
+      </Sub>
+
+      <Card
+        style={{
+          display: "flex",
+          justifyContent:
+            "center",
+          padding:
+            "16px 20px",
+        }}
+      >
+        <WallClock
+          startedAt={
+            room.spyGuessStartedAt
+          }
+          durationSec={
+            SPY_GUESS_TIMER_SEC
+          }
+          size={92}
+        />
       </Card>
+
       <Card>
         <div className="chip-grid">
-          {poolItems.map(it => (
-            <div key={it} onClick={() => spySubmitGuess(it)} className="press-btn" style={{ padding: "9px 13px", borderRadius: 999, border: `1px solid ${C.line}`, cursor: "pointer", background: "rgba(0,0,0,0.22)", fontSize: 13 }}>{it}</div>
-          ))}
+          {poolItems.map(
+            (it) => (
+              <div
+                key={it}
+                onClick={() =>
+                  spySubmitGuess(
+                    it
+                  )
+                }
+                className="press-btn"
+                style={{
+                  padding:
+                    "9px 13px",
+                  borderRadius: 999,
+                  border: `1px solid ${C.line}`,
+                  cursor:
+                    "pointer",
+                  background:
+                    "rgba(0,0,0,0.22)",
+                  fontSize: 13,
+                }}
+              >
+                {it}
+              </div>
+            )
+          )}
         </div>
       </Card>
-      <GhostButton onClick={leaveRoom}><LogOut size={15} /> Leave room</GhostButton>
+
+      <GhostButton
+        onClick={leaveRoom}
+      >
+        <LogOut
+          size={15}
+        />{" "}
+        Leave room
+      </GhostButton>
     </>
   );
 }
+/* ---------------- Spy failure animation ---------------- */
 
-/* ---------------- Reveal ---------------- */
+function SpyFailureAnimation({ spyName }) {
+  return (
+    <div className="shame-overlay">
+      <div className="shame-scene">
+
+        <div className="shame-moon" />
+
+        <div className="shame-mountain" />
+
+        <div className="shame-river" />
+
+        <div className="shame-cliff" />
+        <div className="shame-cliff-edge" />
+
+        {/* Spy walks to the edge, then gets thrown */}
+        <div className="shame-spy">
+          <div className="shame-spy-head" />
+          <div className="shame-spy-body" />
+
+          <div className="shame-spy-arm left" />
+          <div className="shame-spy-arm right" />
+
+          <div className="shame-spy-leg left" />
+          <div className="shame-spy-leg right" />
+        </div>
+
+        {/* Water impact */}
+        <div className="shame-splash" />
+        <div className="shame-ripple" />
+        <div className="shame-ripple" />
+
+        {/* Big reveal */}
+        <div className="shame-word">
+  <div className="shame-name">{spyName}</div>
+  <div>SHAME</div>
+</div>
+
+        <div className="shame-impact" />
+
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   REVEAL
+   ========================================================================= */
+
 function RevealScreen({ room, me, playAgain, backToCategories, leaveRoom }) {
   const votes = room.votes || {};
   const crew = room.players.filter(p => p.id !== room.spyId);
   const correctVoters = crew.filter(p => votes[p.id] === room.spyId);
   const majorityCaught = correctVoters.length > crew.length / 2;
-  const spyName = (room.players.find(p => p.id === room.spyId) || {}).name || "?";
-  const cat = CATEGORIES[room.item.category];
-  const isHost = room.hostId === me.id;
-  const standings = [...room.players].sort((a, b) => (room.scores[b.id] || 0) - (room.scores[a.id] || 0));
+
+  // Only show the cinematic punishment when the spy actually
+  // selected an incorrect answer. A timeout should not trigger it.
+  const showShameAnimation =
+    majorityCaught &&
+    room.spyGuess !== null &&
+    room.spyGuessCorrect === false;
+      const cat = CATEGORIES[room.item.category];
+    const isHost = room.hostId === me.id;
+    const standings = [...room.players].sort(
+    (a, b) => (room.scores[b.id] || 0) - (room.scores[a.id] || 0)
+  );
+  
+
+    const spyName =
+    (room.players.find(p => p.id === room.spyId) || {}).name || "?";
+
+  
+
+  
 
   return (
-    <>
-      <Eyebrow>Round {room.round} · Results</Eyebrow>
-      <Title>Reveal</Title>
+  <>
+    {showShameAnimation && <SpyFailureAnimation spyName={spyName} />}
+    <Eyebrow>Round {room.round} · Results</Eyebrow>
+
+      <Title>
+        Reveal
+      </Title>
+
       <div className="game-grid">
         <div>
-          <Card style={{ textAlign: "center", padding: "26px 20px" }}>
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}><Avatar name={spyName} size={60} /></div>
-            <div style={{ fontSize: 21, fontWeight: 700, color: C.blue, margin: "4px 0" }}>{spyName} was the spy</div>
-            <Eyebrow>{cat.label}</Eyebrow>
-            <div style={{ fontSize: 21, fontWeight: 700, color: C.blueSoft, margin: "4px 0" }}>{room.item.name}</div>
-            <div style={{ fontSize: 14, margin: "14px 0 0", padding: 10, borderRadius: 10, background: "rgba(85,136,201,0.14)", color: C.cream }}>
+          <Card
+            style={{
+              textAlign:
+                "center",
+              padding:
+                "26px 20px",
+            }}
+          >
+            <div
+              style={{
+                display:
+                  "flex",
+                justifyContent:
+                  "center",
+                marginBottom: 10,
+              }}
+            >
+              <Avatar
+                name={spyName}
+                size={60}
+              />
+            </div>
+
+            <div
+              style={{
+                fontSize: 21,
+                fontWeight: 700,
+                color: C.blue,
+                margin:
+                  "4px 0",
+              }}
+            >
+              {spyName} was the
+              spy
+            </div>
+
+            <Eyebrow>
+              {cat.label}
+            </Eyebrow>
+
+            <div
+              style={{
+                fontSize: 21,
+                fontWeight: 700,
+                color:
+                  C.blueSoft,
+                margin:
+                  "4px 0",
+              }}
+            >
+              {room.item.name}
+            </div>
+
+            <div
+              style={{
+                fontSize: 14,
+                margin:
+                  "14px 0 0",
+                padding: 10,
+                borderRadius: 10,
+                background:
+                  "rgba(85,136,201,0.14)",
+                color:
+                  C.cream,
+              }}
+            >
               {majorityCaught
-                ? `Majority caught the spy (${correctVoters.length}/${crew.length} crew guessed right)${room.spyGuessCorrect ? " — but the spy named the item correctly for +1." : room.spyGuessCorrect === false ? " — and the spy's guess was wrong." : "."}`
+                ? `Majority caught the spy (${correctVoters.length}/${crew.length} crew guessed right)${
+                    room.spyGuessCorrect
+                      ? " — but the spy named the item correctly for +1."
+                      : room.spyGuessCorrect ===
+                        false
+                      ? " — and the spy's guess was wrong."
+                      : "."
+                  }`
                 : `The spy evaded a majority (${correctVoters.length}/${crew.length} crew guessed right) — spy earns +2.`}
             </div>
           </Card>
+
           {isHost ? (
             <>
-              <PrimaryButton onClick={playAgain}>Play another round <ArrowRight size={16} /></PrimaryButton>
-              <div style={{ marginTop: 10 }}>
-                <GhostButton onClick={backToCategories}><Sparkles size={15} /> Change categories</GhostButton>
+              <PrimaryButton
+                onClick={
+                  playAgain
+                }
+              >
+                Play another round{" "}
+                <ArrowRight
+                  size={16}
+                />
+              </PrimaryButton>
+
+              <div
+                style={{
+                  marginTop: 10,
+                }}
+              >
+                <GhostButton
+                  onClick={
+                    backToCategories
+                  }
+                >
+                  <Sparkles
+                    size={15}
+                  />{" "}
+                  Change categories
+                </GhostButton>
               </div>
             </>
           ) : (
-            <Card><Sub>Waiting for the host to start the next round…</Sub></Card>
+            <Card>
+              <Sub>
+                Waiting for the
+                host to start the
+                next round…
+              </Sub>
+            </Card>
           )}
-          <div style={{ marginTop: 10 }}><GhostButton onClick={leaveRoom}><LogOut size={15} /> Leave room</GhostButton></div>
+
+          <div
+            style={{
+              marginTop: 10,
+            }}
+          >
+            <GhostButton
+              onClick={
+                leaveRoom
+              }
+            >
+              <LogOut
+                size={15}
+              />{" "}
+              Leave room
+            </GhostButton>
+          </div>
         </div>
+
         <div>
           <Card>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}><Trophy size={16} color={C.blue} /><b style={{ fontFamily: serif, fontSize: 17 }}>Standings</b></div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {standings.map((p, i) => (
-                <PlayerRow key={p.id} player={p} points={room.scores[p.id]} highlight={i === 0} badge={i === 0 ? "1st" : null} isMe={p.id === me.id} />
-              ))}
+            <div
+              style={{
+                display:
+                  "flex",
+                alignItems:
+                  "center",
+                gap: 8,
+                marginBottom: 12,
+              }}
+            >
+              <Trophy
+                size={16}
+                color={C.blue}
+              />
+
+              <b
+                style={{
+                  fontFamily:
+                    serif,
+                  fontSize: 17,
+                }}
+              >
+                Standings
+              </b>
+            </div>
+
+            <div
+              style={{
+                display:
+                  "flex",
+                flexDirection:
+                  "column",
+                gap: 8,
+              }}
+            >
+              {standings.map(
+                (p, i) => (
+                  <PlayerRow
+                    key={p.id}
+                    player={p}
+                    points={
+                      room.scores[
+                        p.id
+                      ]
+                    }
+                    highlight={
+                      i === 0
+                    }
+                    badge={
+                      i === 0
+                        ? "1st"
+                        : null
+                    }
+                    isMe={
+                      p.id ===
+                      me.id
+                    }
+                  />
+                )
+              )}
             </div>
           </Card>
         </div>
