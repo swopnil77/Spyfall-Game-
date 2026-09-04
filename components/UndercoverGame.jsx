@@ -494,8 +494,8 @@ function HomeScreen({ name, setName, homeTab, setHomeTab, codeInput, setCodeInpu
       <ViewfinderFrame size={230}><DetectiveArt /></ViewfinderFrame>
       <div style={{ textAlign: "center", marginTop: 24 }}>
         <Eyebrow>Case File · Party Game</Eyebrow>
-        <Title>Undercover</Title>
-        <Sub>One of you doesn't know the secret. Everyone else does. Ask sly questions, read the room, and unmask the spy — or bluff your way through as one.</Sub>
+        <Title>SpyFall</Title>
+        <Sub>One of you doesn't know the secret. Everyone else does. Ask sly questions, read the room, and unmask the spy or bluff your way through as one.</Sub>
       </div>
       {!CONFIGURED && (
         <Card style={{ borderColor: C.blue }}>
@@ -520,7 +520,7 @@ function HomeScreen({ name, setName, homeTab, setHomeTab, codeInput, setCodeInpu
         {joinError && <div style={{ color: C.blue, fontSize: 13, margin: "-8px 0 12px" }}>{joinError}</div>}
         <PrimaryButton onClick={homeTab === "create" ? createRoom : joinRoom}>{homeTab === "create" ? <>Create New Room <ArrowRight size={16} /></> : <>Join Existing Room <ArrowRight size={16} /></>}</PrimaryButton>
       </Card>
-      <p style={{ fontSize: 11, color: C.creamDim, textAlign: "center", marginTop: 26, lineHeight: 1.6, opacity: 0.8 }}>Photos of real people, posters and character art are kept out of this game for copyright reasons — every player and item gets a colour-coded badge instead.</p>
+      <p style={{ fontSize: 11, color: C.creamDim, textAlign: "center", marginTop: 26, lineHeight: 1.6, opacity: 0.8 }}>Welcome to the Game. Kindly don't be a spoiled brat and just play the game. Yours Truly.</p>
     </>
   );
 }

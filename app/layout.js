@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Undercover — a Spyfall-style party game",
+  title: "SpyFall A Game By Milkymamba",
   description: "Ask sly questions, spot the impostor, or bluff your way through as the spy.",
 };
 
